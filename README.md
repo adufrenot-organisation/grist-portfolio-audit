@@ -66,3 +66,23 @@ Colonnes :
 - `Domaine_code` → référence vers `Domaine`
 
 La suppression d'un domaine est bloquée s'il est encore référencé par une ligne TEAM_REF.
+
+
+## V1.4.0 — Diagnostic et détail d'audit
+
+### Domaine dans Diagnostic
+Le diagnostic affiche maintenant explicitement :
+- le nom logique de la table ;
+- le nombre de lignes ;
+- le **nom de table réellement résolu** dans Grist ;
+- l'erreur si la table est inaccessible.
+
+Pour les domaines, le widget teste : `Domaine`, `Domaines`, `DOMAINE`, `DOMAINES`.
+
+### Journal d'actions
+La colonne `Details` est maintenant affichée dans un bloc dépliable et formate automatiquement
+le JSON lorsqu'il est présent.
+
+Important : le widget Admin ne peut afficher que les détails effectivement enregistrés dans
+`JOURNAL_ACTIONS`. La version Cockpit V4.5.1 jointe ajoute désormais ces détails pour les actions
+réalisées depuis le cockpit.

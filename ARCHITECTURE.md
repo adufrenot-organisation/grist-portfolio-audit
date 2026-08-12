@@ -39,3 +39,9 @@ Domaine 1 ─── N TEAM_REF
 
 Le widget accepte aussi l'ancien identifiant de table `Team_ref` pour la lecture,
 afin de rester compatible avec les versions antérieures du document.
+
+
+## V1.4.0
+
+Le diagnostic conserve le nom de table réellement résolu et les erreurs de chargement.
+Le rendu Audit sait formater `Details` en JSON lisible.
