@@ -27,3 +27,15 @@ avec :
 `TEAM_REF.Domaine_code -> Domaine`
 
 La suppression d'un domaine est interdite s'il est encore utilisé par TEAM_REF.
+
+
+## V1.3 — Domaine et TEAM_REF
+
+Relation gérée par le widget :
+
+Domaine 1 ─── N TEAM_REF
+
+`TEAM_REF.Domaine_code -> Domaine`
+
+Le widget accepte aussi l'ancien identifiant de table `Team_ref` pour la lecture,
+afin de rester compatible avec les versions antérieures du document.

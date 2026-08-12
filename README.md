@@ -1,4 +1,4 @@
-# GRIST. ADMIN & AUDIT PMO — V1.2
+# GRIST. ADMIN & AUDIT PMO — V1.3
 
 Widget séparé du cockpit métier.
 
@@ -40,3 +40,29 @@ référence ce domaine.
 
 La suppression d'une ligne `TEAM_REF` n'est pas encore bloquée par d'autres dépendances,
 car aucune autre relation n'a été confirmée à ce stade.
+
+
+## V1.3 — Correctif réel de la gestion des domaines
+
+La version précédente n'avait pas intégré `Domaine` dans le code réellement exécuté du widget.
+
+Cette version ajoute effectivement dans **Référentiels** :
+
+### Domaines
+Table : `Domaine`
+
+Colonnes :
+- `Code`
+- `Nom`
+- `Description`
+
+### Équipes / TEAM_REF
+Table : `TEAM_REF` (avec compatibilité `Team_ref`)
+
+Colonnes :
+- `Code`
+- `Libelle`
+- `Description`
+- `Domaine_code` → référence vers `Domaine`
+
+La suppression d'un domaine est bloquée s'il est encore référencé par une ligne TEAM_REF.
