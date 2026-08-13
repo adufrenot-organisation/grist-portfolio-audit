@@ -62,3 +62,12 @@ JOURNAL_ACTIONS = audit applicatif. Colonnes Cree_*/Modifie_* = traçabilité de
 
 ## V1.7.0 — Rétention des logs
 La rétention de `JOURNAL_ACTIONS` est administrable dans le widget Admin & Audit.
+
+## V1.8.0 — Documentation MCD
+Deux diagrammes sont embarqués : modèle métier PMO et modèle Audit & Traçabilité.
+
+## V1.8.1
+Les images MCD sont embarquées en Data URI afin de garantir leur affichage dans le widget Grist.
+
+## V1.9.0 — Documentation
+`Documentation` est une table de configuration administrée dans Admin & Audit et restituée en lecture dans le Cockpit.

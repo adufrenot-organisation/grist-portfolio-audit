@@ -109,3 +109,32 @@ L'onglet Audit permet maintenant :
 
 La purge concerne uniquement la table applicative `JOURNAL_ACTIONS`.
 Elle ne supprime pas l'historique natif du document Grist ni les colonnes de traçabilité `Cree_*` / `Modifie_*`.
+
+## V1.8.0 — Double MCD
+
+L'onglet **MCD** contient désormais deux sous-vues :
+- **MCD Métier PMO** (`mcd-metier.png`)
+- **MCD Audit & Traçabilité** (`mcd-audit.png`)
+
+Chaque image peut être prévisualisée séparément depuis l'interface. Pour rendre un remplacement permanent, il faut remplacer le fichier PNG correspondant dans le dépôt publié.
+
+## V1.8.1 — Correctif affichage MCD
+
+Les deux MCD sont maintenant **embarqués directement dans `index.html`** sous forme d'images intégrées.
+Ils ne dépendent donc plus du chargement séparé de `mcd-metier.png` / `mcd-audit.png` par GitHub Pages
+ou du cache du navigateur.
+
+## V1.9.0 — Menu Documentation
+
+Nouvel onglet **Documentation** dans Admin & Audit.
+
+Table Grist attendue : `Documentation`
+
+Colonnes :
+- `Nom` (Text)
+- `Icone` (Text, par ex. 📘, 🔗, 🧭, 🛠️)
+- `URL` (Text)
+- `Ordre` (Numeric)
+- `Actif` (Bool)
+
+Vous pouvez créer autant de lignes que nécessaire. Les lignes actives sont lues automatiquement par le Cockpit.

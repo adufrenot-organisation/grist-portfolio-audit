@@ -1,4 +1,4 @@
-const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
+const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
     teamRef:["TEAM_REF","Team_ref","TEAMREF"]
@@ -22,6 +22,8 @@ const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objective
 }
 function tableName(k,fallback){return resolvedTables[k]||fallback}function id(v){if(Array.isArray(v))return v.find(x=>Number.isInteger(x))??null;let n=Number(v);return Number.isFinite(n)?n:null}function refs(v){return Array.isArray(v)?v.filter(Number.isInteger):Number.isInteger(v)?[v]:[]}function get(k,i){return(db[k]||[]).find(r=>r.id==i)||null}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function pct(v){let n=Number(v||0);if(n<=1)n*=100;return Math.round(n)}function dms(v){if(!v)return null;if(typeof v==='number')return v>1e12?v:v*1000;let n=Date.parse(v);return isNaN(n)?null:n}function dt(v){let m=dms(v);return m?new Date(m).toLocaleString('fr-FR'):''}function din(v){let m=dms(v);return m?new Date(m).toISOString().slice(0,10):''}function gd(v){return v?Math.floor(Date.parse(v+'T00:00:00Z')/1000):null}function msg(t){$('banner').textContent=t;$('banner').classList.remove('hidden');setTimeout(()=>$('banner').classList.add('hidden'),2500)}async function apply(a,m){try{await grist.docApi.applyUserActions(a);await load();msg(m)}catch(e){console.error(e);msg('Erreur Grist : '+(e.message||e))}}
 const A={
+documentation:{l:'Documentation',t:'Documentation',k:'documentation',f:[['Nom','Nom','text'],['Icone','Icône','text'],['URL','URL','text'],['Ordre','Ordre','number'],['Actif','Actif','bool']]},
+
 domains:{l:'Domaines',t:'Domaine',k:'domains',f:[['Code','Code','text'],['Nom','Nom','text'],['Description','Description','text']]},
 teamRef:{l:'Équipes / TEAM_REF',t:'TEAM_REF',k:'teamRef',f:[['Code','Code','text'],['Libelle','Libellé','text'],['Description','Description','text'],['Domaine_code','Domaine','ref:domains']]},
 axes:{l:'Axes stratégiques',t:'Axes_Strategiques',k:'axes',f:[['Code','Code','text'],['Nom','Nom','text'],['Description','Description','text'],['Sponsor','Sponsor','text'],['Priorite','Priorité','text'],['Horizon','Horizon','text'],['Statut','Statut','text']]},objectives:{l:'Objectifs',t:'Objectifs',k:'objectives',f:[['Code','Code','text'],['Nom','Nom','text'],['Axe_Code','Axe','ref:axes'],['KPI','KPI','text'],['Valeur_Cible','Valeur cible','text'],['Echeance','Échéance','date'],['Responsable','Responsable','text'],['Statut','Statut','text'],['Progression','Progression %','percent']]},offers:{l:'Offres de services',t:'Offres_Services',k:'offers',f:[['Code','Code','text'],['Nom','Nom','text'],['Description','Description','text'],['Responsable','Responsable','text'],['Statut','Statut','text']]},activityOffers:{l:'Activités OFS',t:'Activites_OFS',k:'activityOffers',f:[['Activites_Nom','Nom','text'],['OFS_Code','Offre','ref:offers']]},activities:{l:'Activités',t:'Activites',k:'activities',f:[['Code','Code','text'],['Nom','Nom','text'],['Service_Code','Activité OFS','ref:activityOffers'],['Description','Description','text'],['Responsable','Responsable','text'],['Type','Type','text'],['Capacite_ETP','Capacité ETP','number'],['Statut','Statut','text']]},team:{l:'Équipe / Team',t:'Team',k:'team',f:[['nom','Nom','text'],['role','Rôle','text'],['capacite_ETP','Capacité ETP','number']]},projectStages:{l:'Étapes projet',t:'Etapes_Projet',k:'projectStages',f:[['Code','Code','text'],['Nom','Nom','text'],['Ordre','Ordre','number'],['Actif','Actif','bool']]},featureStages:{l:'Stades fonctionnalité',t:'Stades_Fonctionnalite',k:'featureStages',f:[['Code','Code','text'],['Nom','Nom','text'],['Ordre','Ordre','number'],['Actif','Actif','bool']]}};
@@ -68,6 +70,23 @@ async function purgeAllAudit(){
   await apply(ids.map(id=>["RemoveRecord","JOURNAL_ACTIONS",id]),"Journal purgé.");
 }
 
+
+function renderDocs(){
+  const rows=[...(db.documentation||[])].sort((a,b)=>Number(a.Ordre||0)-Number(b.Ordre||0)||String(a.Nom||"").localeCompare(String(b.Nom||"")));
+  $("docsTable").innerHTML=rows.length?`<table><thead><tr><th>Ordre</th><th>Icône</th><th>Nom</th><th>URL</th><th>Actif</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
+    <td>${esc(r.Ordre??"")}</td><td class="doc-icon-cell">${esc(r.Icone||"📄")}</td><td><strong>${esc(r.Nom||"")}</strong></td>
+    <td><a href="${esc(r.URL||"#")}" target="_blank" rel="noopener noreferrer">${esc(r.URL||"")}</a></td>
+    <td>${r.Actif===false?"Non":"Oui"}</td>
+    <td class="row-actions"><button data-doc-edit="${r.id}">Modifier</button><button class="danger" data-doc-del="${r.id}">Supprimer</button></td>
+  </tr>`).join("")}</tbody></table>`:'<p class="muted">Aucun lien de documentation.</p>';
+  document.querySelectorAll("[data-doc-edit]").forEach(b=>b.onclick=()=>{
+    refSelect.value="documentation";openEdit(Number(b.dataset.docEdit));
+  });
+  document.querySelectorAll("[data-doc-del]").forEach(b=>b.onclick=async()=>{
+    refSelect.value="documentation";await del(Number(b.dataset.docDel));renderDocs();
+  });
+}
+
 function renderAudit(){
   let rs=(db.audit||[]).filter(r=>!search||Object.values(r).some(v=>String(v??'').toLowerCase().includes(search)));
   rs.sort((a,b)=>(dms(b.Date_Heure)||0)-(dms(a.Date_Heure)||0));
@@ -87,11 +106,27 @@ function renderAudit(){
     if(source)return `${t.padEnd(28)} ${String(count).padStart(5)} ligne(s)   ✓ source: ${source}`;
     return `${t.padEnd(28)}     —          ✗ ${tableErrors[k]||"table introuvable"}`;
   }).join('\n')
-}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderAudit();diag()}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['refs','audit','trace','diag','mcd'].forEach(k=>$(k+'View').classList.toggle('hidden',k!==b.dataset.tab));if(b.dataset.tab==='trace')renderTrace()});refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();mcdFile.onchange=e=>{let f=e.target.files?.[0];if(!f)return;mcdImage.src=URL.createObjectURL(f);mcdHint.textContent='Prévisualisation locale : '+f.name+'. Pour la partager, remplace mcd.png dans GitHub Pages.'};init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();
+}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag()}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['refs','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View').classList.toggle('hidden',k!==b.dataset.tab));if(b.dataset.tab==='docs')renderDocs();if(b.dataset.tab==='trace')renderTrace()});refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();document.querySelectorAll("[data-mcd]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-mcd]").forEach(x=>x.classList.toggle("active",x===b));
+  $("mcdMetierPanel").classList.toggle("hidden",b.dataset.mcd!=="metier");
+  $("mcdAuditPanel").classList.toggle("hidden",b.dataset.mcd!=="audit");
+});
+function previewMcd(fileInput,imageId,hintId,sharedName){
+  fileInput.onchange=e=>{
+    const f=e.target.files?.[0];if(!f)return;
+    $(imageId).src=URL.createObjectURL(f);
+    $(hintId).textContent=`Prévisualisation locale : ${f.name}. Pour la partager, remplace ${sharedName} dans le dépôt.`;
+  };
+}
+previewMcd($("mcdMetierFile"),"mcdMetierImage","mcdMetierHint","mcd-metier.png");
+previewMcd($("mcdAuditFile"),"mcdAuditImage","mcdAuditHint","mcd-audit.png");
+init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();
 $("refreshTraceBtn").onclick=renderTrace;
 
 const purgeOldAuditBtn=document.getElementById("purgeOldAuditBtn");
 if(purgeOldAuditBtn)purgeOldAuditBtn.onclick=()=>purgeAuditOlderThan(document.getElementById("purgeAgeSelect").value);
 const purgeAllAuditBtn=document.getElementById("purgeAllAuditBtn");
 if(purgeAllAuditBtn)purgeAllAuditBtn.onclick=purgeAllAudit;
+
+$("newDocBtn").onclick=()=>{refSelect.value="documentation";openEdit();};
