@@ -51,3 +51,7 @@ Le rendu Audit sait formater `Details` en JSON lisible.
 Séparation métier/référentiel :
 - `Fonctionnalites` : CRUD dans Cockpit PMO.
 - `Stades_Fonctionnalite` : référentiel CRUD dans Admin & Audit.
+
+
+## V1.5.1
+Fonctionnalites = donnée métier Cockpit. Stades_Fonctionnalite = référentiel Admin.

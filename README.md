@@ -92,3 +92,7 @@ réalisées depuis le cockpit.
 Le CRUD `Fonctionnalites` sort du widget Admin & Audit.
 Le référentiel `Stades_Fonctionnalite` reste dans l'administration.
 La table `Fonctionnalites` peut toujours être chargée en lecture pour le diagnostic et les contrôles de dépendances.
+
+
+## V1.5.1
+Le CRUD `Fonctionnalites` est exclusivement dans le Cockpit PMO. `Stades_Fonctionnalite` reste un référentiel administré ici.
