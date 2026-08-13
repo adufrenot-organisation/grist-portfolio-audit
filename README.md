@@ -68,7 +68,7 @@ Colonnes :
 La suppression d'un domaine est bloquée s'il est encore référencé par une ligne TEAM_REF.
 
 
-## V1.4.0 — Diagnostic et détail d'audit
+## V1.5.0 — Diagnostic et détail d'audit
 
 ### Domaine dans Diagnostic
 Le diagnostic affiche maintenant explicitement :
@@ -86,3 +86,9 @@ le JSON lorsqu'il est présent.
 Important : le widget Admin ne peut afficher que les détails effectivement enregistrés dans
 `JOURNAL_ACTIONS`. La version Cockpit V4.5.1 jointe ajoute désormais ces détails pour les actions
 réalisées depuis le cockpit.
+
+
+## V1.5
+Le CRUD `Fonctionnalites` sort du widget Admin & Audit.
+Le référentiel `Stades_Fonctionnalite` reste dans l'administration.
+La table `Fonctionnalites` peut toujours être chargée en lecture pour le diagnostic et les contrôles de dépendances.

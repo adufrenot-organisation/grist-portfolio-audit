@@ -45,3 +45,9 @@ afin de rester compatible avec les versions antérieures du document.
 
 Le diagnostic conserve le nom de table réellement résolu et les erreurs de chargement.
 Le rendu Audit sait formater `Details` en JSON lisible.
+
+
+## V1.5
+Séparation métier/référentiel :
+- `Fonctionnalites` : CRUD dans Cockpit PMO.
+- `Stades_Fonctionnalite` : référentiel CRUD dans Admin & Audit.
