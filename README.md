@@ -96,3 +96,16 @@ La table `Fonctionnalites` peut toujours être chargée en lecture pour le diagn
 
 ## V1.5.1
 Le CRUD `Fonctionnalites` est exclusivement dans le Cockpit PMO. `Stades_Fonctionnalite` reste un référentiel administré ici.
+
+
+## V1.6.0 — Traçabilité Grist
+Onglet dédié à Cree_Par, Cree_Le, Modifie_Par, Modifie_Le sur Projects, Tasks et Fonctionnalites.
+
+## V1.7.0 — Purge du journal
+
+L'onglet Audit permet maintenant :
+- de purger les logs de plus de 30 / 90 / 180 / 365 jours ;
+- de purger entièrement `JOURNAL_ACTIONS`.
+
+La purge concerne uniquement la table applicative `JOURNAL_ACTIONS`.
+Elle ne supprime pas l'historique natif du document Grist ni les colonnes de traçabilité `Cree_*` / `Modifie_*`.

@@ -55,3 +55,10 @@ Séparation métier/référentiel :
 
 ## V1.5.1
 Fonctionnalites = donnée métier Cockpit. Stades_Fonctionnalite = référentiel Admin.
+
+
+## V1.6.0
+JOURNAL_ACTIONS = audit applicatif. Colonnes Cree_*/Modifie_* = traçabilité des modifications directes Grist.
+
+## V1.7.0 — Rétention des logs
+La rétention de `JOURNAL_ACTIONS` est administrable dans le widget Admin & Audit.

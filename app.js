@@ -39,6 +39,35 @@ function prettyDetails(v){
   }catch(e){}
   return `<details><summary>Voir le détail</summary><pre style="white-space:pre-wrap;max-width:620px">${esc(s)}</pre></details>`;
 }
+
+function traceDate(v){if(!v)return"—";try{const d=typeof v==="number"?new Date(v*1000):new Date(v);return isNaN(d.getTime())?String(v):d.toLocaleString("fr-FR")}catch(_){return String(v)}}
+function traceLabel(r){return r.nom||r.Nom||r.titre||r.Titre||r.Code||r.code||`#${r.id}`}
+function renderTrace(){const gs=[["Projects",db.projects||[]],["Tasks",db.tasks||[]],["Fonctionnalites",db.features||[]]],rows=[],missing=[];gs.forEach(([n,a])=>{if(a.length&&!["Cree_Par","Cree_Le","Modifie_Par","Modifie_Le"].every(c=>c in a[0]))missing.push(n);a.forEach(r=>rows.push({t:n,o:traceLabel(r),cp:r.Cree_Par||"—",cl:r.Cree_Le,mp:r.Modifie_Par||"—",ml:r.Modifie_Le}))});rows.sort((a,b)=>String(b.ml||b.cl||0).localeCompare(String(a.ml||a.cl||0)));$("traceStats").innerHTML=gs.map(([n,a])=>`<div><strong>${a.length}</strong><span>${esc(n)}</span></div>`).join("");$("traceTable").innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>Table</th><th>Objet</th><th>Créé par</th><th>Créé le</th><th>Modifié par</th><th>Modifié le</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.t)}</td><td>${esc(r.o)}</td><td>${esc(r.cp)}</td><td>${esc(traceDate(r.cl))}</td><td>${esc(r.mp)}</td><td>${esc(traceDate(r.ml))}</td></tr>`).join("")}</tbody></table></div>`:"<p>Aucune donnée.</p>";$("traceWarning").textContent=missing.length?`Colonnes incomplètes : ${missing.join(", ")}`:"Colonnes de traçabilité détectées."}
+
+
+function auditTimestamp(r){
+  const v=r.Date_Heure;
+  if(!v)return null;
+  if(typeof v==="number")return v>1000000000000?v:v*1000;
+  const n=Date.parse(v);return Number.isFinite(n)?n:null;
+}
+async function purgeAuditOlderThan(days){
+  const cutoff=Date.now()-Number(days)*86400000;
+  const ids=(db.audit||[]).filter(r=>{
+    const ts=auditTimestamp(r);
+    return ts!==null&&ts<cutoff;
+  }).map(r=>r.id);
+  if(!ids.length){banner(`Aucun log de plus de ${days} jours.`);return}
+  if(!confirm(`Supprimer définitivement ${ids.length} log(s) de plus de ${days} jours ?`))return;
+  await apply(ids.map(id=>["RemoveRecord","JOURNAL_ACTIONS",id]),`${ids.length} log(s) purgé(s).`);
+}
+async function purgeAllAudit(){
+  const ids=(db.audit||[]).map(r=>r.id);
+  if(!ids.length){banner("Le journal est déjà vide.");return}
+  if(!confirm(`Supprimer définitivement les ${ids.length} logs de JOURNAL_ACTIONS ?`))return;
+  await apply(ids.map(id=>["RemoveRecord","JOURNAL_ACTIONS",id]),"Journal purgé.");
+}
+
 function renderAudit(){
   let rs=(db.audit||[]).filter(r=>!search||Object.values(r).some(v=>String(v??'').toLowerCase().includes(search)));
   rs.sort((a,b)=>(dms(b.Date_Heure)||0)-(dms(a.Date_Heure)||0));
@@ -59,4 +88,10 @@ function renderAudit(){
     return `${t.padEnd(28)}     —          ✗ ${tableErrors[k]||"table introuvable"}`;
   }).join('\n')
 }async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderAudit();diag()}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['refs','audit','diag','mcd'].forEach(k=>$(k+'View').classList.toggle('hidden',k!==b.dataset.tab))});refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();mcdFile.onchange=e=>{let f=e.target.files?.[0];if(!f)return;mcdImage.src=URL.createObjectURL(f);mcdHint.textContent='Prévisualisation locale : '+f.name+'. Pour la partager, remplace mcd.png dans GitHub Pages.'};init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['refs','audit','trace','diag','mcd'].forEach(k=>$(k+'View').classList.toggle('hidden',k!==b.dataset.tab));if(b.dataset.tab==='trace')renderTrace()});refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();mcdFile.onchange=e=>{let f=e.target.files?.[0];if(!f)return;mcdImage.src=URL.createObjectURL(f);mcdHint.textContent='Prévisualisation locale : '+f.name+'. Pour la partager, remplace mcd.png dans GitHub Pages.'};init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();
+$("refreshTraceBtn").onclick=renderTrace;
+
+const purgeOldAuditBtn=document.getElementById("purgeOldAuditBtn");
+if(purgeOldAuditBtn)purgeOldAuditBtn.onclick=()=>purgeAuditOlderThan(document.getElementById("purgeAgeSelect").value);
+const purgeAllAuditBtn=document.getElementById("purgeAllAuditBtn");
+if(purgeAllAuditBtn)purgeAllAuditBtn.onclick=purgeAllAudit;
