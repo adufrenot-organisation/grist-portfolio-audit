@@ -71,3 +71,6 @@ Les images MCD sont embarquées en Data URI afin de garantir leur affichage dans
 
 ## V1.9.0 — Documentation
 `Documentation` est une table de configuration administrée dans Admin & Audit et restituée en lecture dans le Cockpit.
+
+## V1.9.1
+Documentation supporte deux sources : URL externe ou Attachments Grist.

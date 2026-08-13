@@ -22,7 +22,7 @@ const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objective
 }
 function tableName(k,fallback){return resolvedTables[k]||fallback}function id(v){if(Array.isArray(v))return v.find(x=>Number.isInteger(x))??null;let n=Number(v);return Number.isFinite(n)?n:null}function refs(v){return Array.isArray(v)?v.filter(Number.isInteger):Number.isInteger(v)?[v]:[]}function get(k,i){return(db[k]||[]).find(r=>r.id==i)||null}function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function pct(v){let n=Number(v||0);if(n<=1)n*=100;return Math.round(n)}function dms(v){if(!v)return null;if(typeof v==='number')return v>1e12?v:v*1000;let n=Date.parse(v);return isNaN(n)?null:n}function dt(v){let m=dms(v);return m?new Date(m).toLocaleString('fr-FR'):''}function din(v){let m=dms(v);return m?new Date(m).toISOString().slice(0,10):''}function gd(v){return v?Math.floor(Date.parse(v+'T00:00:00Z')/1000):null}function msg(t){$('banner').textContent=t;$('banner').classList.remove('hidden');setTimeout(()=>$('banner').classList.add('hidden'),2500)}async function apply(a,m){try{await grist.docApi.applyUserActions(a);await load();msg(m)}catch(e){console.error(e);msg('Erreur Grist : '+(e.message||e))}}
 const A={
-documentation:{l:'Documentation',t:'Documentation',k:'documentation',f:[['Nom','Nom','text'],['Icone','Icône','text'],['URL','URL','text'],['Ordre','Ordre','number'],['Actif','Actif','bool']]},
+documentation:{l:'Documentation',t:'Documentation',k:'documentation',f:[['Nom','Nom','text'],['Icone','Icône','text'],['Type_Document','Type','choice',['URL','Pièce jointe']],['URL','URL','text'],['Piece_Jointe','Pièce jointe Grist','readonly'],['Ordre','Ordre','number'],['Actif','Actif','bool']]},
 
 domains:{l:'Domaines',t:'Domaine',k:'domains',f:[['Code','Code','text'],['Nom','Nom','text'],['Description','Description','text']]},
 teamRef:{l:'Équipes / TEAM_REF',t:'TEAM_REF',k:'teamRef',f:[['Code','Code','text'],['Libelle','Libellé','text'],['Description','Description','text'],['Domaine_code','Domaine','ref:domains']]},
@@ -73,18 +73,17 @@ async function purgeAllAudit(){
 
 function renderDocs(){
   const rows=[...(db.documentation||[])].sort((a,b)=>Number(a.Ordre||0)-Number(b.Ordre||0)||String(a.Nom||"").localeCompare(String(b.Nom||"")));
-  $("docsTable").innerHTML=rows.length?`<table><thead><tr><th>Ordre</th><th>Icône</th><th>Nom</th><th>URL</th><th>Actif</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
-    <td>${esc(r.Ordre??"")}</td><td class="doc-icon-cell">${esc(r.Icone||"📄")}</td><td><strong>${esc(r.Nom||"")}</strong></td>
-    <td><a href="${esc(r.URL||"#")}" target="_blank" rel="noopener noreferrer">${esc(r.URL||"")}</a></td>
-    <td>${r.Actif===false?"Non":"Oui"}</td>
-    <td class="row-actions"><button data-doc-edit="${r.id}">Modifier</button><button class="danger" data-doc-del="${r.id}">Supprimer</button></td>
-  </tr>`).join("")}</tbody></table>`:'<p class="muted">Aucun lien de documentation.</p>';
-  document.querySelectorAll("[data-doc-edit]").forEach(b=>b.onclick=()=>{
-    refSelect.value="documentation";openEdit(Number(b.dataset.docEdit));
-  });
-  document.querySelectorAll("[data-doc-del]").forEach(b=>b.onclick=async()=>{
-    refSelect.value="documentation";await del(Number(b.dataset.docDel));renderDocs();
-  });
+  $("docsTable").innerHTML=rows.length?`<table><thead><tr><th>Ordre</th><th>Icône</th><th>Nom</th><th>Type</th><th>Source</th><th>Actif</th><th></th></tr></thead><tbody>${rows.map(r=>{
+    const attachments=Array.isArray(r.Piece_Jointe)?r.Piece_Jointe.filter(x=>Number(x)>0):[];
+    const source=r.Type_Document==="Pièce jointe"?(attachments.length?`${attachments.length} pièce(s) jointe(s)`:"À charger dans Grist"):esc(r.URL||"");
+    return `<tr>
+      <td>${esc(r.Ordre??"")}</td><td class="doc-icon-cell">${esc(r.Icone||"📄")}</td><td><strong>${esc(r.Nom||"")}</strong></td>
+      <td>${esc(r.Type_Document||"URL")}</td><td>${source}</td><td>${r.Actif===false?"Non":"Oui"}</td>
+      <td class="row-actions"><button data-doc-edit="${r.id}">Modifier</button><button class="danger" data-doc-del="${r.id}">Supprimer</button></td>
+    </tr>`;
+  }).join("")}</tbody></table>`:'<p class="muted">Aucun lien ou document.</p>';
+  document.querySelectorAll("[data-doc-edit]").forEach(b=>b.onclick=()=>{refSelect.value="documentation";openEdit(Number(b.dataset.docEdit));});
+  document.querySelectorAll("[data-doc-del]").forEach(b=>b.onclick=async()=>{refSelect.value="documentation";await del(Number(b.dataset.docDel));renderDocs();});
 }
 
 function renderAudit(){

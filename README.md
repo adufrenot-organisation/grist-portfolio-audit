@@ -138,3 +138,13 @@ Colonnes :
 - `Actif` (Bool)
 
 Vous pouvez créer autant de lignes que nécessaire. Les lignes actives sont lues automatiquement par le Cockpit.
+
+## V1.9.1 — Documentation URL ou pièce jointe
+
+La table `Documentation` accepte maintenant :
+- `Type_Document` : `URL` ou `Pièce jointe`
+- `URL` : utilisé pour les liens externes
+- `Piece_Jointe` : colonne Grist de type **Attachments**
+
+Le formulaire Admin permet de choisir le type. La pièce jointe elle-même est chargée dans la cellule
+`Piece_Jointe` de la table Grist native. Admin affiche ensuite son état.
