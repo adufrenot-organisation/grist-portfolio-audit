@@ -148,3 +148,8 @@ La table `Documentation` accepte maintenant :
 
 Le formulaire Admin permet de choisir le type. La pièce jointe elle-même est chargée dans la cellule
 `Piece_Jointe` de la table Grist native. Admin affiche ensuite son état.
+
+
+## Import / Export — mapping Produit
+
+La version 2.0 ajoute un onglet **Import / Export** pour visualiser et éditer `mapping-produit.json`, relier visuellement les champs JSON aux colonnes Grist, modifier les règles `identify` et `Ref`, valider puis exporter le mapping. Les modifications de mapping sont conservées localement dans le navigateur jusqu’à export/réinitialisation ; elles ne modifient pas le schéma Grist.
