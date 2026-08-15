@@ -31,7 +31,7 @@
 
   <div class="mapping-help panel">
     <strong>À quoi sert le mapping ?</strong>
-    <p>Le mapping est le contrat entre l’analyse d’une fiche Produit et Grist. À gauche figurent les informations que l’IA doit identifier dans le document ; à droite les colonnes de <code>Fonctionnalites</code>. Les traits indiquent où chaque valeur doit être écrite. Une référence <code>Ref</code> est recherchée dans sa table référente et peut être créée si elle n’existe pas.</p>
+    <p>Le mapping est le contrat entre l’analyse d’une fiche Produit et Grist. À gauche figurent les informations que l’IA doit identifier dans le document ; à droite les colonnes de <code>Fonctionnalites</code>. Les traits indiquent où chaque valeur doit être écrite. Vous pouvez les créer par glisser-déposer, remapper un champ vers une autre colonne et supprimer une liaison avec ×, le bouton Délier, la touche Suppr, un double-clic ou un clic droit sur le trait. Une référence <code>Ref</code> est recherchée dans sa table référente et peut être créée si elle n’existe pas.</p>
     <p><strong>Important :</strong> une valeur absente du document reste <code>null</code> et n’efface pas une valeur existante lors d’une mise à jour. Modifier ce mapping ne modifie pas le schéma Grist.</p>
   </div>
 
@@ -93,7 +93,7 @@
   <p id="mcdAuditHint">MCD Audit & Traçabilité embarqué dans l’application. Une image chargée ici est seulement prévisualisée dans la session.</p>
 </div>
 </section></div>
-<dialog id="editDialog"><form id="editForm" method="dialog"><input type="hidden" name="id"><div class="dialog-head"><h3 id="editTitle"></h3><button type="button" id="closeDialog">×</button></div><div id="editFields" class="form-grid"></div><div id="depHint" class="hint"></div><div class="dialog-actions"><button type="button" id="cancelDialog">Annuler</button><button class="primary">Enregistrer</button></div></form></dialog><script src="app.js?v=2.0.0"></script></body></html<div class="actions audit-actions">
+<dialog id="editDialog"><form id="editForm" method="dialog"><input type="hidden" name="id"><div class="dialog-head"><h3 id="editTitle"></h3><button type="button" id="closeDialog">×</button></div><div id="editFields" class="form-grid"></div><div id="depHint" class="hint"></div><div class="dialog-actions"><button type="button" id="cancelDialog">Annuler</button><button class="primary">Enregistrer</button></div></form></dialog><script src="app.js?v=2.2.0"></script></body></html<div class="actions audit-actions">
   <input id="auditSearch" placeholder="Rechercher..."/>
   <select id="purgeAgeSelect" title="Période à conserver">
     <option value="30">Garder 30 jours</option>
