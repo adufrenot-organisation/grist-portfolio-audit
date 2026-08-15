@@ -153,3 +153,8 @@ Le formulaire Admin permet de choisir le type. La pièce jointe elle-même est c
 ## Import / Export — mapping Produit
 
 La version 2.0 ajoute un onglet **Import / Export** pour visualiser et éditer `mapping-produit.json`, relier visuellement les champs JSON aux colonnes Grist, modifier les règles `identify` et `Ref`, valider puis exporter le mapping. Les modifications de mapping sont conservées localement dans le navigateur jusqu’à export/réinitialisation ; elles ne modifient pas le schéma Grist.
+
+
+## v2.4.0
+
+L’onglet Import / Export et l’éditeur de mapping ont été déplacés dans le module autonome **Migration**.
