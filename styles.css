@@ -28,3 +28,112 @@
 .mapping-connecting .target-node{cursor:copy}
 .mapping-connecting .target-node:hover{border-color:#7f56d9;background:#f4f3ff;box-shadow:0 0 0 3px #f4f3ff}
 .mapping-rule-field select[data-map-edit="target_column"]{font-weight:700;background:#fff}
+
+
+/* ============================================================
+   PMO SUITE — CHARTE UI v1.0
+   Identité commune Cockpit / Admin & Audit / Migration
+   ============================================================ */
+:root{
+  --pmo-navy:#14324C;
+  --pmo-navy-dark:#10283D;
+  --pmo-accent:var(--module-accent,#2F6FED);
+  --pmo-teal:#35C7C5;
+  --pmo-bg:#F4F7FA;
+  --pmo-surface:#FFFFFF;
+  --pmo-border:#DBE3EA;
+  --pmo-text:#102033;
+  --pmo-muted:#64748B;
+  --pmo-success:#12B76A;
+  --pmo-warning:#F79009;
+  --pmo-danger:#D92D20;
+  --pmo-radius:10px;
+  --pmo-shadow:0 2px 8px rgba(16,32,51,.08);
+}
+
+body{
+  background:var(--pmo-bg)!important;
+  color:var(--pmo-text)!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+
+.pmo-brand-lockup{display:flex;align-items:center;gap:10px;min-width:max-content}
+.pmo-brand-badge{
+  width:36px;height:36px;border-radius:9px;background:#fff;color:var(--pmo-navy);
+  display:grid;place-items:center;font-weight:900;font-size:12px;letter-spacing:-.02em;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+}
+.pmo-brand-copy{display:flex;flex-direction:column;line-height:1.05}
+.pmo-brand-copy strong{font-size:14px;color:#fff}
+.pmo-brand-copy small{font-size:10px;color:#B9C7D3;margin-top:4px}
+.pmo-version{
+  font-size:10px!important;color:#B9C7D3!important;background:rgba(255,255,255,.08);
+  padding:4px 6px;border-radius:999px;margin-left:2px
+}
+
+/* Common surfaces */
+.card,.panel,.summary,.librarybar,.mappingmeta,.rule-inspector,.manual-mapping-view,
+.raw-mapping-view,.resource-main-panel,.portfolio-list-section,.detail-card,.project-card,
+.modal-card,.dialog-card{
+  border-color:var(--pmo-border)!important;
+}
+.card,.panel,.portfolio-list-section,.resource-main-panel{
+  background:var(--pmo-surface)!important;
+  border-radius:var(--pmo-radius)!important;
+  box-shadow:var(--pmo-shadow);
+}
+h1,h2,h3,h4{color:var(--pmo-text)}
+.muted,.sub,.summary,p.lead{color:var(--pmo-muted)!important}
+
+/* Common controls */
+button,input,select,textarea{font-family:inherit}
+input,select,textarea{
+  border-color:#CBD5E1!important;
+  border-radius:8px!important;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none!important;border-color:var(--pmo-accent)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--pmo-accent) 16%,transparent)!important;
+}
+button{border-radius:8px}
+button.primary,.primary{
+  background:var(--pmo-accent)!important;border-color:var(--pmo-accent)!important;color:#fff!important;
+  box-shadow:0 1px 2px rgba(16,24,40,.08);
+}
+button.primary:hover,.primary:hover{filter:brightness(.96)}
+button.secondary,.secondary-btn{background:#fff!important;border-color:#CBD5E1!important;color:var(--pmo-text)!important}
+
+/* Tables */
+table{border-color:var(--pmo-border)!important}
+th{
+  background:#F8FAFC!important;color:#475569!important;
+  font-size:11px!important;font-weight:750!important;
+}
+td{border-color:#E8EDF2!important}
+
+/* Dialogs / drawers */
+dialog,.modal,.drawer,.resource-drawer{
+  border-color:var(--pmo-border)!important;
+  box-shadow:0 20px 50px rgba(16,40,61,.18)!important;
+}
+
+/* status / badges */
+.badge,.pill,.status-pill{font-weight:700}
+
+:root{--module-accent:#35C7C5;}
+header.pmo-admin-header{
+  background:var(--pmo-navy)!important;color:#fff!important;min-height:64px!important;
+  padding:0 18px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:18px!important;box-shadow:0 2px 10px rgba(16,40,61,.14)!important;
+}
+header.pmo-admin-header nav{display:flex!important;height:64px!important;align-items:stretch!important;overflow-x:auto}
+header.pmo-admin-header .tab{
+  border:0!important;background:transparent!important;color:#D6E0E8!important;border-radius:0!important;
+  padding:0 13px!important;border-bottom:3px solid transparent!important;font-weight:650!important;white-space:nowrap!important;
+}
+header.pmo-admin-header .tab:hover{background:rgba(255,255,255,.06)!important;color:#fff!important}
+header.pmo-admin-header .tab.active{color:#fff!important;border-bottom-color:var(--pmo-accent)!important;background:rgba(255,255,255,.04)!important}
+.head{padding-top:4px}
+.head h1{font-size:28px!important}
+.kpis>div,.kpi{border-radius:10px!important;border:1px solid var(--pmo-border)!important}
+.mcd-subtab.active{color:var(--pmo-accent)!important;border-bottom-color:var(--pmo-accent)!important}
