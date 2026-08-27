@@ -158,3 +158,17 @@ La version 2.0 ajoute un onglet **Import / Export** pour visualiser et éditer `
 ## v2.4.0
 
 L’onglet Import / Export et l’éditeur de mapping ont été déplacés dans le module autonome **Migration**.
+
+
+## v2.5.0 — redesign Admin & Audit PMO
+
+- nouvelle navigation latérale structurée par domaines fonctionnels ;
+- page Accueil avec KPI issus des tables réellement chargées, santé des sources et dernières actions ;
+- nouvel écran `Front Office` pour administrer `Parametres_FrontOffice` ;
+- conservation des fonctions v2.4.0 : Référentiels, Documentation, Audit, Traçabilité Grist, Diagnostic et MCD ;
+- correction de la structure HTML de la vue Audit et des actions de purge ;
+- interface responsive et menu latéral réductible.
+
+### Parametres_FrontOffice
+
+Table attendue : `Parametres_FrontOffice` avec `Code`, `Libelle`, `Actif`, `Emplacement`, `Ordre`. Le Cockpit consomme cette table en lecture ; l'Admin PMO en assure la modification.

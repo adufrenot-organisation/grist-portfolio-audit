@@ -1,7 +1,9 @@
-const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
+const VERSION="2.5.0";
+const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
-    teamRef:["TEAM_REF","Team_ref","TEAMREF"]
+    teamRef:["TEAM_REF","Team_ref","TEAMREF"],
+    frontOfficeConfig:["Parametres_FrontOffice","PARAMETRES_FRONTOFFICE","ParametresFrontOffice"]
   };
   const names=candidates[k]||[t];
   let lastError=null;
@@ -31,7 +33,7 @@ function deps(k,r){
 if(k==='domains')return db.teamRef.filter(x=>id(x.Domaine_code)==r).length;
 if(k==='teamRef')return 0;
 if(k==='axes')return db.objectives.filter(x=>id(x.Axe_Code)==r).length;if(k==='objectives')return db.contrib.filter(x=>(id(x.Objectif_Libelle)||id(x.Objectif_Code2))==r).length;if(k==='offers')return db.activityOffers.filter(x=>id(x.OFS_Code)==r).length;if(k==='activityOffers')return db.activities.filter(x=>id(x.Service_Code)==r).length;if(k==='activities')return db.projects.filter(x=>id(x.activite)==r).length;if(k==='team')return db.projects.filter(x=>id(x.responsable)==r).length+db.tasks.filter(x=>refs(x.assignees).includes(r)).length+db.allocations.filter(x=>id(x.Ressource_Code)==r).length+db.features.filter(x=>id(x.Responsable)==r).length;if(k==='projectStages')return db.projects.filter(x=>id(x.etape_courante)==r).length+db.tasks.filter(x=>id(x.etape_projet)==r).length;if(k==='featureStages')return db.features.filter(x=>id(x.stade)==r).length;if(k==='features')return db.tasks.filter(x=>id(x.fonctionnalite)==r).length;return 0}function display(r,f){let[n,,t]=f,v=r[n];if(t==='date')return dt(v);if(t==='percent')return pct(v)+'%';if(t==='bool')return v?'Oui':'Non';if(t.startsWith('ref:')){let x=get(t.split(':')[1],id(v));return x?.Nom||x?.nom||x?.Activites_Nom||x?.Code||''}return v??''}
-function init(){refSelect.innerHTML=Object.entries(A).map(([k,c])=>`<option value="${k}">${c.l}</option>`).join('')}function renderRefs(){let k=refSelect.value||Object.keys(A)[0],c=A[k],rs=db[c.k]||[];refTable.innerHTML=rs.length?`<table><thead><tr>${c.f.slice(0,6).map(x=>`<th>${x[1]}</th>`).join('')}<th>Usages</th><th></th></tr></thead><tbody>${rs.map(r=>`<tr>${c.f.slice(0,6).map(f=>`<td>${esc(display(r,f))}</td>`).join('')}<td>${deps(k,r.id)}</td><td class="row-actions"><button data-e="${r.id}">Modifier</button><button class="danger" data-d="${r.id}">Supprimer</button></td></tr>`).join('')}</tbody></table>`:'Aucun enregistrement.';document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openEdit(+b.dataset.e));document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>del(+b.dataset.d))}function field(n,l,t,v){if(t.startsWith('ref:')){let rs=db[t.split(':')[1]]||[];return`<label>${l}<select name="${n}"><option value="">—</option>${rs.map(r=>`<option value="${r.id}" ${id(v)==r.id?'selected':''}>${esc(r.Nom||r.nom||r.Activites_Nom||r.Code||'#'+r.id)}</option>`).join('')}</select></label>`}if(t==='date')return`<label>${l}<input type="date" name="${n}" value="${din(v)}"></label>`;if(t==='number')return`<label>${l}<input type="number" step=".01" name="${n}" value="${v??''}"></label>`;if(t==='percent')return`<label>${l}<input type="number" min="0" max="100" name="${n}" value="${pct(v)}"></label>`;if(t==='bool')return`<label>${l}<select name="${n}"><option value="true" ${v!==false?'selected':''}>Oui</option><option value="false" ${v===false?'selected':''}>Non</option></select></label>`;return`<label>${l}<input name="${n}" value="${esc(v??'')}"></label>`}function openEdit(rid){let k=refSelect.value,c=A[k],r=rid?get(c.k,rid):null;editForm.id.value=rid||'';editTitle.textContent=(rid?'Modifier ':'Créer ')+c.l;editFields.innerHTML=c.f.map(f=>field(f[0],f[1],f[2],r?.[f[0]])).join('');depHint.textContent=rid?deps(k,rid)+' dépendance(s).':'Nouvel enregistrement.';editDialog.showModal()}editForm.onsubmit=async e=>{e.preventDefault();let k=refSelect.value,c=A[k],f=e.currentTarget,rid=+f.id.value||null,o={};for(let[n,,t]of c.f){let el=f.elements[n];o[n]=t.startsWith('ref:')?(el.value?+el.value:null):t==='date'?gd(el.value):t==='number'?(el.value===''?null:+el.value):t==='percent'?(+el.value/100):t==='bool'?(el.value==='true'):el.value}editDialog.close();await apply([[rid?'UpdateRecord':'AddRecord',tableName(c.k,c.t),rid||null,o]],rid?'Mis à jour.':'Créé.')};async function del(r){let k=refSelect.value,c=A[k],n=deps(k,r);if(n)return msg('Suppression bloquée : '+n+' dépendance(s).');if(confirm('Supprimer définitivement ?'))await apply([['RemoveRecord',tableName(c.k,c.t),r]],'Supprimé.')}
+function init(){refSelect.innerHTML=Object.entries(A).map(([k,c])=>`<option value="${k}">${c.l}</option>`).join('')}function renderRefs(){let k=refSelect.value||Object.keys(A)[0],c=A[k],rs=db[c.k]||[];refTable.innerHTML=rs.length?`<table><thead><tr>${c.f.slice(0,6).map(x=>`<th>${x[1]}</th>`).join('')}<th>Usages</th><th></th></tr></thead><tbody>${rs.map(r=>`<tr>${c.f.slice(0,6).map(f=>`<td>${esc(display(r,f))}</td>`).join('')}<td>${deps(k,r.id)}</td><td class="row-actions"><button data-e="${r.id}">Modifier</button><button class="danger" data-d="${r.id}">Supprimer</button></td></tr>`).join('')}</tbody></table>`:'Aucun enregistrement.';document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openEdit(+b.dataset.e));document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>del(+b.dataset.d))}function field(n,l,t,v,choices){if(t.startsWith('ref:')){let rs=db[t.split(':')[1]]||[];return`<label>${l}<select name="${n}"><option value="">—</option>${rs.map(r=>`<option value="${r.id}" ${id(v)==r.id?'selected':''}>${esc(r.Nom||r.nom||r.Activites_Nom||r.Code||'#'+r.id)}</option>`).join('')}</select></label>`}if(t==='choice')return`<label>${l}<select name="${n}">${(choices||[]).map(x=>`<option value="${esc(x)}" ${String(v||'')===String(x)?'selected':''}>${esc(x)}</option>`).join('')}</select></label>`;if(t==='readonly')return`<label>${l}<input name="${n}" value="${esc(v??'')}" disabled></label>`;if(t==='date')return`<label>${l}<input type="date" name="${n}" value="${din(v)}"></label>`;if(t==='number')return`<label>${l}<input type="number" step=".01" name="${n}" value="${v??''}"></label>`;if(t==='percent')return`<label>${l}<input type="number" min="0" max="100" name="${n}" value="${pct(v)}"></label>`;if(t==='bool')return`<label>${l}<select name="${n}"><option value="true" ${v!==false?'selected':''}>Oui</option><option value="false" ${v===false?'selected':''}>Non</option></select></label>`;return`<label>${l}<input name="${n}" value="${esc(v??'')}"></label>`}function openEdit(rid){let k=refSelect.value,c=A[k],r=rid?get(c.k,rid):null;editForm.id.value=rid||'';editTitle.textContent=(rid?'Modifier ':'Créer ')+c.l;editFields.innerHTML=c.f.map(f=>field(f[0],f[1],f[2],r?.[f[0]],f[3])).join('');depHint.textContent=rid?deps(k,rid)+' dépendance(s).':'Nouvel enregistrement.';editDialog.showModal()}editForm.onsubmit=async e=>{e.preventDefault();let k=refSelect.value,c=A[k],f=e.currentTarget,rid=+f.id.value||null,o={};for(let[n,,t]of c.f){let el=f.elements[n];if(t==='readonly'||!el)continue;o[n]=t.startsWith('ref:')?(el.value?+el.value:null):t==='date'?gd(el.value):t==='number'?(el.value===''?null:+el.value):t==='percent'?(+el.value/100):t==='bool'?(el.value==='true'):el.value}editDialog.close();await apply([[rid?'UpdateRecord':'AddRecord',tableName(c.k,c.t),rid||null,o]],rid?'Mis à jour.':'Créé.')};async function del(r){let k=refSelect.value,c=A[k],n=deps(k,r);if(n)return msg('Suppression bloquée : '+n+' dépendance(s).');if(confirm('Supprimer définitivement ?'))await apply([['RemoveRecord',tableName(c.k,c.t),r]],'Supprimé.')}
 function prettyDetails(v){
   if(v===null||v===undefined||v==="")return '<span class="muted">Aucun détail enregistré</span>';
   let s=String(v);
@@ -59,13 +61,13 @@ async function purgeAuditOlderThan(days){
     const ts=auditTimestamp(r);
     return ts!==null&&ts<cutoff;
   }).map(r=>r.id);
-  if(!ids.length){banner(`Aucun log de plus de ${days} jours.`);return}
+  if(!ids.length){msg(`Aucun log de plus de ${days} jours.`);return}
   if(!confirm(`Supprimer définitivement ${ids.length} log(s) de plus de ${days} jours ?`))return;
   await apply(ids.map(id=>["RemoveRecord","JOURNAL_ACTIONS",id]),`${ids.length} log(s) purgé(s).`);
 }
 async function purgeAllAudit(){
   const ids=(db.audit||[]).map(r=>r.id);
-  if(!ids.length){banner("Le journal est déjà vide.");return}
+  if(!ids.length){msg("Le journal est déjà vide.");return}
   if(!confirm(`Supprimer définitivement les ${ids.length} logs de JOURNAL_ACTIONS ?`))return;
   await apply(ids.map(id=>["RemoveRecord","JOURNAL_ACTIONS",id]),"Journal purgé.");
 }
@@ -98,15 +100,63 @@ function renderAudit(){
     return;
   }
   auditTable.innerHTML=`<table><thead><tr><th>Date</th><th>Utilisateur</th><th>Origine</th><th>Action</th><th>Table</th><th>Record</th><th>Libellé</th><th>Détails</th></tr></thead><tbody>${rs.map(r=>`<tr><td>${esc(dt(r.Date_Heure))}</td><td>${esc(r.Utilisateur)}</td><td>${esc(r.Origine)}</td><td>${esc(r.Action)}</td><td>${esc(r.Table)}</td><td>${esc(r.Record_ID)}</td><td>${esc(r.Libelle)}</td><td>${prettyDetails(r.Details)}</td></tr>`).join('')}</tbody></table>`;
-}function diag(){
+
+}
+const FRONT_DEFAULTS={
+  SUGGESTIONS:{Code:"SUGGESTIONS",Libelle:"Suggestions",Actif:true,Emplacement:"HEADER",Ordre:1},
+  DISCUSSIONS:{Code:"DISCUSSIONS",Libelle:"Discussions",Actif:true,Emplacement:"HEADER",Ordre:2},
+  PRESENCE:{Code:"PRESENCE",Libelle:"Présence",Actif:true,Emplacement:"HEADER",Ordre:3}
+};
+function frontConfig(){
+  const out={};Object.values(FRONT_DEFAULTS).forEach(x=>out[x.Code]={...x});
+  (db.frontOfficeConfig||[]).forEach(r=>{const code=String(r.Code||"").trim().toUpperCase();if(out[code])out[code]={...out[code],...r,Code:code}});
+  return out;
+}
+function renderFrontOffice(){
+  const host=$("frontOfficeRows"),missing=$("frontOfficeMissing");if(!host)return;
+  if(tableErrors.frontOfficeConfig){
+    missing.classList.remove("hidden");missing.innerHTML=`<strong>Table Parametres_FrontOffice inaccessible.</strong><br>${esc(tableErrors.frontOfficeConfig)}<br><small>Importez la table de configuration avant d’enregistrer ces paramètres.</small>`;
+  }else missing.classList.add("hidden");
+  const cfg=frontConfig(),labels={
+    SUGGESTIONS:["💡 Suggestions","Formulaire de suggestions utilisateurs"],
+    DISCUSSIONS:["💬 Discussions","Chat et messages contextuels"],
+    PRESENCE:["👥 Présence","Indicateur des utilisateurs actifs"]
+  };
+  host.innerHTML=["SUGGESTIONS","DISCUSSIONS","PRESENCE"].map(code=>{const r=cfg[code],l=labels[code],places=code==="PRESENCE"?[["HEADER","Barre principale"],["HIDDEN","Masqué"]]:[["HEADER","Barre principale"],["PLUS","Menu Plus"],["HIDDEN","Masqué"]];return `<div class="fo-row"><div><strong>${l[0]}</strong><small>${l[1]}</small></div><label class="toggle"><input type="checkbox" name="${code}_Actif" ${r.Actif!==false?"checked":""}><span></span><em>${r.Actif!==false?"Actif":"Masqué"}</em></label><select name="${code}_Emplacement">${places.map(([v,n])=>`<option value="${v}" ${String(r.Emplacement||"HEADER").toUpperCase()===v?"selected":""}>${n}</option>`).join("")}</select><input type="number" name="${code}_Ordre" min="1" max="99" value="${Number(r.Ordre||1)}"></div>`}).join("");
+  host.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.onchange=()=>{const em=cb.closest('.toggle').querySelector('em');em.textContent=cb.checked?'Actif':'Masqué'});
+}
+async function saveFrontOffice(e){
+  e.preventDefault();if(tableErrors.frontOfficeConfig)return msg("Table Parametres_FrontOffice inaccessible.");
+  const f=e.currentTarget,actions=[];
+  ["SUGGESTIONS","DISCUSSIONS","PRESENCE"].forEach(code=>{const existing=(db.frontOfficeConfig||[]).find(r=>String(r.Code||"").trim().toUpperCase()===code);const fields={Code:code,Libelle:FRONT_DEFAULTS[code].Libelle,Actif:f.elements[`${code}_Actif`].checked,Emplacement:f.elements[`${code}_Emplacement`].value,Ordre:Number(f.elements[`${code}_Ordre`].value||1)};actions.push(existing?["UpdateRecord",tableName("frontOfficeConfig","Parametres_FrontOffice"),existing.id,fields]:["AddRecord",tableName("frontOfficeConfig","Parametres_FrontOffice"),null,fields])});
+  await apply(actions,"Paramètres Front Office enregistrés.");
+}
+function healthLine(label,ok,detail){return `<div class="health-line"><span class="health-dot ${ok?'ok':'bad'}">${ok?'✓':'!'}</span><span><strong>${esc(label)}</strong><small>${esc(detail||'')}</small></span><em class="${ok?'ok':'bad'}">${ok?'OK':'À vérifier'}</em></div>`}
+function renderHome(){
+  if(!$("homeKpis"))return;
+  const refKeys=Object.keys(A).filter(k=>k!=="documentation"),refRows=refKeys.reduce((n,k)=>n+(db[A[k].k]||[]).length,0),tableTotal=Object.keys(T).length,tableOk=Object.values(resolvedTables).filter(Boolean).length,docs=(db.documentation||[]).filter(r=>r.Actif!==false).length,audit=(db.audit||[]).length;
+  $("homeKpis").innerHTML=`<article class="home-kpi"><span class="kpi-icon blue">▤</span><div><small>Référentiels</small><strong>${refRows}</strong><em>${refKeys.length} familles administrées</em></div></article><article class="home-kpi"><span class="kpi-icon green">▦</span><div><small>Tables Grist</small><strong>${tableOk}/${tableTotal}</strong><em>${tableTotal-tableOk?`${tableTotal-tableOk} à vérifier`:'Toutes accessibles'}</em></div></article><article class="home-kpi"><span class="kpi-icon purple">▧</span><div><small>Documentation publiée</small><strong>${docs}</strong><em>${(db.documentation||[]).length} document(s) configuré(s)</em></div></article><article class="home-kpi"><span class="kpi-icon orange">◫</span><div><small>Logs d’audit</small><strong>${audit}</strong><em>JOURNAL_ACTIONS</em></div></article>`;
+  const allOk=tableOk===tableTotal;$("topHealthBadge").className=`health-badge ${allOk?'ok':'warn'}`;$("topHealthBadge").textContent=allOk?'● Système opérationnel':`● ${tableTotal-tableOk} table(s) à vérifier`;$("homeTableHealth").textContent=allOk?'● Sources opérationnelles':`● ${tableTotal-tableOk} source(s) à vérifier`;
+  $("homeHealth").innerHTML=healthLine('Connexion Grist',true,'API du document accessible')+healthLine('Référentiels',refKeys.every(k=>!!resolvedTables[A[k].k]),`${refKeys.length} familles attendues`)+healthLine('Journal d’audit',!!resolvedTables.audit,`${audit} ligne(s)`)+healthLine('Documentation',!!resolvedTables.documentation,`${docs} publiée(s)`)+healthLine('Paramètres Front Office',!!resolvedTables.frontOfficeConfig,resolvedTables.frontOfficeConfig?'Configuration détectée':'Table absente');
+  const cfg=frontConfig();$("homeFrontOffice").innerHTML=["SUGGESTIONS","DISCUSSIONS","PRESENCE"].map(code=>{const r=cfg[code];return `<div class="config-line"><span>${esc(r.Libelle)}</span><strong class="${r.Actif!==false?'ok':'muted'}">${r.Actif!==false?`${esc(r.Emplacement||'HEADER')}`:'Masqué'}</strong></div>`}).join('');
+  const recent=[...(db.audit||[])].sort((a,b)=>(dms(b.Date_Heure)||0)-(dms(a.Date_Heure)||0)).slice(0,5);$("homeRecentAudit").innerHTML=recent.length?`<div class="recent-table">${recent.map(r=>`<div class="recent-row"><span>${esc(dt(r.Date_Heure))}</span><strong>${esc(r.Utilisateur||'—')}</strong><span>${esc(r.Action||'—')}</span><span>${esc(r.Table||'—')}</span><em>${esc(r.Libelle||'')}</em></div>`).join('')}</div>`:'<p class="muted">Aucune activité enregistrée.</p>';
+}
+function setTab(tab){
+  document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+  ['home','refs','frontoffice','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View')?.classList.toggle('hidden',k!==tab));
+  const titles={home:['Accueil','Administration et gouvernance de la plateforme PMO'],refs:['Référentiels','Administration des données de référence'],frontoffice:['Front Office','Configuration de l’expérience Cockpit'],docs:['Documentation','Contenus publiés dans le Cockpit'],audit:['Audit / Logs','Journal des actions applicatives'],trace:['Traçabilité Grist','Création et modification des données métier'],diag:['Diagnostic','Santé des tables et des sources'],mcd:['MCD','Documentation graphique des modèles']};
+  if(titles[tab]){$('topbarTitle').textContent=titles[tab][0];$('topbarSubtitle').textContent=titles[tab][1]}
+  if(tab==='home')renderHome();if(tab==='refs')renderRefs();if(tab==='frontoffice')renderFrontOffice();if(tab==='docs')renderDocs();if(tab==='audit')renderAudit();if(tab==='trace')renderTrace();if(tab==='diag')diag();
+}
+function diag(){
   diagnostic.textContent=Object.entries(T).map(([k,t])=>{
     const source=resolvedTables[k];
     const count=(db[k]||[]).length;
     if(source)return `${t.padEnd(28)} ${String(count).padStart(5)} ligne(s)   ✓ source: ${source}`;
     return `${t.padEnd(28)}     —          ✗ ${tableErrors[k]||"table introuvable"}`;
   }).join('\n')
-}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag()}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['refs','docs','audit','trace','diag','importexport','mcd'].forEach(k=>$(k+'View').classList.toggle('hidden',k!==b.dataset.tab));if(b.dataset.tab==='docs')renderDocs();if(b.dataset.tab==='trace')renderTrace();if(b.dataset.tab==='importexport')renderMapping()});refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();document.querySelectorAll("[data-mcd]").forEach(b=>b.onclick=()=>{
+}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag();renderFrontOffice();renderHome()}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));document.querySelectorAll('[data-go-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.goTab));refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();document.querySelectorAll("[data-mcd]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("[data-mcd]").forEach(x=>x.classList.toggle("active",x===b));
   $("mcdMetierPanel").classList.toggle("hidden",b.dataset.mcd!=="metier");
   $("mcdAuditPanel").classList.toggle("hidden",b.dataset.mcd!=="audit");
@@ -120,7 +170,7 @@ function previewMcd(fileInput,imageId,hintId,sharedName){
 }
 previewMcd($("mcdMetierFile"),"mcdMetierImage","mcdMetierHint","mcd-metier.png");
 previewMcd($("mcdAuditFile"),"mcdAuditImage","mcdAuditHint","mcd-audit.png");
-init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();
+init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();setTab('home');
 $("refreshTraceBtn").onclick=renderTrace;
 
 const purgeOldAuditBtn=document.getElementById("purgeOldAuditBtn");
@@ -129,3 +179,8 @@ const purgeAllAuditBtn=document.getElementById("purgeAllAuditBtn");
 if(purgeAllAuditBtn)purgeAllAuditBtn.onclick=purgeAllAudit;
 
 $("newDocBtn").onclick=()=>{refSelect.value="documentation";openEdit();};
+
+const frontOfficeForm=document.getElementById('frontOfficeForm');if(frontOfficeForm)frontOfficeForm.onsubmit=saveFrontOffice;
+const refreshFrontOfficeBtn=document.getElementById('refreshFrontOfficeBtn');if(refreshFrontOfficeBtn)refreshFrontOfficeBtn.onclick=load;
+const topRefreshBtn=document.getElementById('topRefreshBtn');if(topRefreshBtn)topRefreshBtn.onclick=load;
+const collapseSidebarBtn=document.getElementById('collapseSidebarBtn');if(collapseSidebarBtn)collapseSidebarBtn.onclick=()=>{document.getElementById('app').classList.toggle('sidebar-collapsed');collapseSidebarBtn.querySelector('span').textContent=document.getElementById('app').classList.contains('sidebar-collapsed')?'Déployer le menu':'Réduire le menu'};

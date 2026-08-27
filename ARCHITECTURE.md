@@ -74,3 +74,8 @@ Les images MCD sont embarquées en Data URI afin de garantir leur affichage dans
 
 ## V1.9.1
 Documentation supporte deux sources : URL externe ou Attachments Grist.
+
+
+## v2.5.0 — séparation Back Office / Front Office
+
+`Admin & Audit PMO` est propriétaire de la configuration `Parametres_FrontOffice`. Le Cockpit ne fait que la lire et l'appliquer. La page d'accueil du back-office consolide uniquement des informations dérivées des tables Grist déjà chargées : volumes, disponibilité des tables, documentation et journal d'audit.
