@@ -1,5 +1,5 @@
-const VERSION="2.5.0";
-const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
+const VERSION="2.5.1";
+const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice",suggestions:"Suggestions"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
     teamRef:["TEAM_REF","Team_ref","TEAMREF"],
@@ -131,6 +131,43 @@ async function saveFrontOffice(e){
   ["SUGGESTIONS","DISCUSSIONS","PRESENCE"].forEach(code=>{const existing=(db.frontOfficeConfig||[]).find(r=>String(r.Code||"").trim().toUpperCase()===code);const fields={Code:code,Libelle:FRONT_DEFAULTS[code].Libelle,Actif:f.elements[`${code}_Actif`].checked,Emplacement:f.elements[`${code}_Emplacement`].value,Ordre:Number(f.elements[`${code}_Ordre`].value||1)};actions.push(existing?["UpdateRecord",tableName("frontOfficeConfig","Parametres_FrontOffice"),existing.id,fields]:["AddRecord",tableName("frontOfficeConfig","Parametres_FrontOffice"),null,fields])});
   await apply(actions,"Paramètres Front Office enregistrés.");
 }
+
+function suggestionAdminStatusClass(v){
+  const x=String(v||"Nouvelle").toLowerCase();
+  if(/réalis|real/.test(x))return "done";if(/refus/.test(x))return "refused";if(/accept|planifi/.test(x))return "accepted";if(/étude|etude/.test(x))return "study";return "new";
+}
+function suggestionAdminDate(v){return v?dt(v):""}
+function renderSuggestions(){
+  const host=$("suggestionsAdminTable");if(!host)return;
+  const rows=[...(db.suggestions||[])];
+  const q=String($("suggestionAdminSearch")?.value||"").trim().toLowerCase();
+  const status=$("suggestionStatusFilter")?.value||"";
+  const filtered=rows.filter(x=>(!status||String(x.Statut||"Nouvelle")===status)&&(!q||[x.Titre,x.Description,x.Auteur_Email,x.Module,x.Contexte,x.Type].some(v=>String(v||"").toLowerCase().includes(q)))).sort((a,b)=>(dms(b.Date_MAJ||b.Date_Creation)||0)-(dms(a.Date_MAJ||a.Date_Creation)||0));
+  const counts={};rows.forEach(x=>{const k=String(x.Statut||"Nouvelle");counts[k]=(counts[k]||0)+1});
+  const pending=(counts["Nouvelle"]||0)+(counts["À l’étude"]||0);
+  $("suggestionsNavBadge").textContent=pending;
+  $("suggestionAdminKpis").innerHTML=`<div class="kpi"><span>Total</span><strong>${rows.length}</strong></div><div class="kpi"><span>Nouvelles</span><strong>${counts["Nouvelle"]||0}</strong></div><div class="kpi"><span>À l’étude</span><strong>${counts["À l’étude"]||0}</strong></div><div class="kpi"><span>Planifiées</span><strong>${counts["Planifiée"]||0}</strong></div><div class="kpi"><span>Réalisées</span><strong>${counts["Réalisée"]||0}</strong></div>`;
+  if(tableErrors.suggestions){host.innerHTML=`<p class="muted">Table Suggestions inaccessible : ${esc(tableErrors.suggestions)}</p>`;return}
+  host.innerHTML=filtered.length?`<table><thead><tr><th>Date</th><th>Auteur</th><th>Type</th><th>Suggestion</th><th>Contexte</th><th>Statut</th><th>Priorité</th><th>Cible</th><th></th></tr></thead><tbody>${filtered.map(x=>`<tr><td>${esc(suggestionAdminDate(x.Date_Creation))}</td><td>${esc(x.Auteur_Email||"—")}</td><td>${esc(x.Type||"—")}</td><td><strong>${esc(x.Titre||"")}</strong></td><td>${esc(x.Contexte||x.Module||"")}</td><td><span class="admin-suggestion-status ${suggestionAdminStatusClass(x.Statut)}">${esc(x.Statut||"Nouvelle")}</span></td><td>${esc(x.Priorite||"—")}</td><td>${esc(x.Version_Cible||"—")}</td><td><button class="small" data-edit-suggestion="${x.id}">Traiter</button></td></tr>`).join("")}</tbody></table>`:'<p class="muted">Aucune suggestion pour ce filtre.</p>';
+  host.querySelectorAll("[data-edit-suggestion]").forEach(b=>b.onclick=()=>openSuggestionAdmin(Number(b.dataset.editSuggestion)));
+  const sample=rows[0]||{};
+  const needed=["Reponse_PMO","Priorite","Version_Cible","Date_MAJ","Traite_Par"];
+  const missing=rows.length?needed.filter(k=>!Object.prototype.hasOwnProperty.call(sample,k)):[];
+  const warn=$("suggestionsWorkflowWarning");
+  if(missing.length){warn.classList.remove("hidden");warn.innerHTML=`Le workflow enrichi nécessite les colonnes : <strong>${missing.join(", ")}</strong>. Ajoutez-les à la table Suggestions pour enregistrer la réponse PMO, la priorité et la cible.`}else warn.classList.add("hidden");
+}
+function openSuggestionAdmin(rowId){
+  const x=(db.suggestions||[]).find(r=>Number(r.id)===Number(rowId));if(!x)return;
+  const f=$("suggestionAdminForm");f.id.value=x.id;f.Statut.value=x.Statut||"Nouvelle";f.Priorite.value=x.Priorite||"";f.Version_Cible.value=x.Version_Cible||"";f.Reponse_PMO.value=x.Reponse_PMO||"";f.Traite_Par.value=x.Traite_Par||"";
+  $("suggestionAdminTitle").textContent=x.Titre||"Suggestion";$("suggestionAdminMeta").textContent=`${x.Auteur_Email||"—"} • ${suggestionAdminDate(x.Date_Creation)} • ${x.Type||"—"}`;$("suggestionAdminDescription").textContent=x.Description||"";$("suggestionAdminContext").textContent=x.Contexte||x.Module||"";
+  $("suggestionAdminDialog").showModal();
+}
+async function saveSuggestionAdmin(e){
+  e.preventDefault();const f=e.currentTarget,rowId=Number(f.id.value);
+  const fields={Statut:f.Statut.value,Priorite:f.Priorite.value,Version_Cible:f.Version_Cible.value,Reponse_PMO:f.Reponse_PMO.value,Traite_Par:f.Traite_Par.value,Date_MAJ:Math.floor(Date.now()/1000)};
+  try{await grist.docApi.applyUserActions([["UpdateRecord",tableName("suggestions","Suggestions"),rowId,fields]]);$("suggestionAdminDialog").close();await load();msg("Suivi de la suggestion enregistré.")}catch(e){console.error(e);msg("Impossible d’enregistrer : vérifiez les colonnes du workflow Suggestions.")}
+}
+
 function healthLine(label,ok,detail){return `<div class="health-line"><span class="health-dot ${ok?'ok':'bad'}">${ok?'✓':'!'}</span><span><strong>${esc(label)}</strong><small>${esc(detail||'')}</small></span><em class="${ok?'ok':'bad'}">${ok?'OK':'À vérifier'}</em></div>`}
 function renderHome(){
   if(!$("homeKpis"))return;
@@ -143,10 +180,10 @@ function renderHome(){
 }
 function setTab(tab){
   document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
-  ['home','refs','frontoffice','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View')?.classList.toggle('hidden',k!==tab));
-  const titles={home:['Accueil','Administration et gouvernance de la plateforme PMO'],refs:['Référentiels','Administration des données de référence'],frontoffice:['Front Office','Configuration de l’expérience Cockpit'],docs:['Documentation','Contenus publiés dans le Cockpit'],audit:['Audit / Logs','Journal des actions applicatives'],trace:['Traçabilité Grist','Création et modification des données métier'],diag:['Diagnostic','Santé des tables et des sources'],mcd:['MCD','Documentation graphique des modèles']};
+  ['home','refs','frontoffice','suggestions','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View')?.classList.toggle('hidden',k!==tab));
+  const titles={home:['Accueil','Administration et gouvernance de la plateforme PMO'],refs:['Référentiels','Administration des données de référence'],frontoffice:['Front Office','Configuration de l’expérience Cockpit'],suggestions:['Suggestions','Qualification et suivi des demandes utilisateurs'],docs:['Documentation','Contenus publiés dans le Cockpit'],audit:['Audit / Logs','Journal des actions applicatives'],trace:['Traçabilité Grist','Création et modification des données métier'],diag:['Diagnostic','Santé des tables et des sources'],mcd:['MCD','Documentation graphique des modèles']};
   if(titles[tab]){$('topbarTitle').textContent=titles[tab][0];$('topbarSubtitle').textContent=titles[tab][1]}
-  if(tab==='home')renderHome();if(tab==='refs')renderRefs();if(tab==='frontoffice')renderFrontOffice();if(tab==='docs')renderDocs();if(tab==='audit')renderAudit();if(tab==='trace')renderTrace();if(tab==='diag')diag();
+  if(tab==='home')renderHome();if(tab==='refs')renderRefs();if(tab==='frontoffice')renderFrontOffice();if(tab==='suggestions')renderSuggestions();if(tab==='docs')renderDocs();if(tab==='audit')renderAudit();if(tab==='trace')renderTrace();if(tab==='diag')diag();
 }
 function diag(){
   diagnostic.textContent=Object.entries(T).map(([k,t])=>{
@@ -155,7 +192,7 @@ function diag(){
     if(source)return `${t.padEnd(28)} ${String(count).padStart(5)} ligne(s)   ✓ source: ${source}`;
     return `${t.padEnd(28)}     —          ✗ ${tableErrors[k]||"table introuvable"}`;
   }).join('\n')
-}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag();renderFrontOffice();renderHome()}
+}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag();renderFrontOffice();renderSuggestions();renderHome()}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));document.querySelectorAll('[data-go-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.goTab));refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();document.querySelectorAll("[data-mcd]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("[data-mcd]").forEach(x=>x.classList.toggle("active",x===b));
   $("mcdMetierPanel").classList.toggle("hidden",b.dataset.mcd!=="metier");
@@ -184,3 +221,9 @@ const frontOfficeForm=document.getElementById('frontOfficeForm');if(frontOfficeF
 const refreshFrontOfficeBtn=document.getElementById('refreshFrontOfficeBtn');if(refreshFrontOfficeBtn)refreshFrontOfficeBtn.onclick=load;
 const topRefreshBtn=document.getElementById('topRefreshBtn');if(topRefreshBtn)topRefreshBtn.onclick=load;
 const collapseSidebarBtn=document.getElementById('collapseSidebarBtn');if(collapseSidebarBtn)collapseSidebarBtn.onclick=()=>{document.getElementById('app').classList.toggle('sidebar-collapsed');collapseSidebarBtn.querySelector('span').textContent=document.getElementById('app').classList.contains('sidebar-collapsed')?'Déployer le menu':'Réduire le menu'};
+
+$("suggestionAdminSearch").oninput=renderSuggestions;
+$("suggestionStatusFilter").onchange=renderSuggestions;
+$("refreshSuggestionsBtn").onclick=load;
+$("closeSuggestionAdmin").onclick=$("cancelSuggestionAdmin").onclick=()=>$("suggestionAdminDialog").close();
+$("suggestionAdminForm").onsubmit=saveSuggestionAdmin;

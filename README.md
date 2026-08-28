@@ -172,3 +172,6 @@ L’onglet Import / Export et l’éditeur de mapping ont été déplacés dans 
 ### Parametres_FrontOffice
 
 Table attendue : `Parametres_FrontOffice` avec `Code`, `Libelle`, `Actif`, `Emplacement`, `Ordre`. Le Cockpit consomme cette table en lecture ; l'Admin PMO en assure la modification.
+
+## v2.5.1 — administration des suggestions
+Ajout d'un écran Suggestions : filtres, compteurs, traitement, statut, priorité, version cible, réponse PMO et responsable du traitement. Les réponses sont ensuite visibles par l'auteur dans le Cockpit v5.4.38.

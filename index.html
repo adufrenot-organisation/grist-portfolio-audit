@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Admin & Audit PMO</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.0">
+  <link rel="stylesheet" href="styles.css?v=2.5.1">
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 </head>
 <body>
@@ -14,14 +14,15 @@
       <div class="admin-brand-badge">PMO</div>
       <div class="admin-brand-copy"><strong>Admin & Audit PMO</strong><small>Administration de la plateforme</small></div>
     </div>
-    <div class="admin-version">v2.5.0</div>
+    <div class="admin-version">v2.5.1</div>
 
     <nav class="admin-nav">
       <button class="admin-nav-item active" data-tab="home"><span>⌂</span><span>Accueil</span></button>
 
       <div class="admin-nav-group">Gouvernance</div>
       <button class="admin-nav-item" data-tab="refs"><span>▤</span><span>Référentiels</span></button>
-      <button class="admin-nav-item" data-tab="frontoffice"><span>▣</span><span>Front Office</span><em>Nouveau</em></button>
+      <button class="admin-nav-item" data-tab="frontoffice"><span>▣</span><span>Front Office</span></button>
+      <button class="admin-nav-item" data-tab="suggestions"><span>💡</span><span>Suggestions</span><em id="suggestionsNavBadge">0</em></button>
 
       <div class="admin-nav-group">Contenu & documentation</div>
       <button class="admin-nav-item" data-tab="docs"><span>▧</span><span>Documentation</span></button>
@@ -55,7 +56,7 @@
         <div class="welcome-copy">
           <h2>Bienvenue dans l’Admin & Audit PMO</h2>
           <p>Pilotez les référentiels, les paramètres du Cockpit, la documentation et la traçabilité Grist depuis un espace unique.</p>
-          <div class="welcome-badges"><span>● Environnement Grist</span><span>Version v2.5.0</span><span id="homeTableHealth">Chargement…</span></div>
+          <div class="welcome-badges"><span>● Environnement Grist</span><span>Version v2.5.1</span><span id="homeTableHealth">Chargement…</span></div>
         </div>
         <div class="welcome-visual"><span>▦</span><span>◈</span><span>✓</span></div>
       </div>
@@ -111,7 +112,14 @@
       </div>
     </section>
 
-    <section id="docsView" class="view hidden">
+    <section id="suggestionsView" class="view hidden">
+      <div class="page-head"><div><h2>Suggestions</h2><p>Qualification, décision et suivi des suggestions envoyées depuis le Cockpit.</p></div><div class="actions"><select id="suggestionStatusFilter"><option value="">Tous les statuts</option><option>Nouvelle</option><option>À l’étude</option><option>Acceptée</option><option>Refusée</option><option>Planifiée</option><option>Réalisée</option></select><input id="suggestionAdminSearch" placeholder="Rechercher…"><button id="refreshSuggestionsBtn">↻ Rafraîchir</button></div></div>
+      <div id="suggestionsWorkflowWarning" class="notice warning hidden"></div>
+      <div id="suggestionAdminKpis" class="kpis"></div>
+      <div class="panel"><div id="suggestionsAdminTable"></div></div>
+    </section>
+
+<section id="docsView" class="view hidden">
       <div class="page-head"><div><h2>Documentation</h2><p>Liens et documents publiés dans le Cockpit PMO.</p></div><button class="primary" id="newDocBtn">+ Nouveau lien</button></div>
       <div class="panel"><div id="docsTable"></div><p class="muted">Les lignes actives apparaissent automatiquement dans l’onglet Documentation du Cockpit.</p></div>
     </section>
@@ -150,11 +158,23 @@
 </section>
 
 
-    <footer class="admin-footer">Admin & Audit PMO v2.5.0 • Grist reste l’unique source de vérité</footer>
+    <footer class="admin-footer">Admin & Audit PMO v2.5.1 • Grist reste l’unique source de vérité</footer>
   </main>
 
   <dialog id="editDialog"><form id="editForm" method="dialog"><input type="hidden" name="id"><div class="dialog-head"><h3 id="editTitle"></h3><button type="button" id="closeDialog">×</button></div><div id="editFields" class="form-grid"></div><div id="depHint" class="hint"></div><div class="dialog-actions"><button type="button" id="cancelDialog">Annuler</button><button class="primary">Enregistrer</button></div></form></dialog>
+<dialog id="suggestionAdminDialog"><form id="suggestionAdminForm"><input type="hidden" name="id">
+  <div class="dialog-head"><div><h3 id="suggestionAdminTitle">Suggestion</h3><p id="suggestionAdminMeta" class="muted"></p></div><button type="button" id="closeSuggestionAdmin">×</button></div>
+  <div class="suggestion-admin-detail"><div><strong>Description</strong><p id="suggestionAdminDescription"></p></div><div><strong>Contexte</strong><p id="suggestionAdminContext"></p></div></div>
+  <div class="form-grid">
+    <label>Statut<select name="Statut"><option>Nouvelle</option><option>À l’étude</option><option>Acceptée</option><option>Refusée</option><option>Planifiée</option><option>Réalisée</option></select></label>
+    <label>Priorité<select name="Priorite"><option value="">—</option><option>Basse</option><option>Normale</option><option>Haute</option><option>Critique</option></select></label>
+    <label>Version / release cible<input name="Version_Cible" placeholder="Ex. v5.5 ou Release T4"></label>
+    <label class="wide">Réponse PMO<textarea name="Reponse_PMO" rows="5" placeholder="Réponse visible par l’auteur dans le Cockpit"></textarea></label>
+    <label>Traité par<input name="Traite_Par" placeholder="Email ou nom PMO"></label>
+  </div>
+  <div class="dialog-actions"><button type="button" id="cancelSuggestionAdmin">Annuler</button><button class="primary" type="submit">Enregistrer le suivi</button></div>
+</form></dialog>
 </div>
-<script src="app.js?v=2.5.0"></script>
+<script src="app.js?v=2.5.1"></script>
 </body>
 </html>
