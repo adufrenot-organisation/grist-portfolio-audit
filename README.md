@@ -176,11 +176,11 @@ Table attendue : `Parametres_FrontOffice` avec `Code`, `Libelle`, `Actif`, `Empl
 ## v2.5.1 — administration des suggestions
 Ajout d'un écran Suggestions : filtres, compteurs, traitement, statut, priorité, version cible, réponse PMO et responsable du traitement. Les réponses sont ensuite visibles par l'auteur dans le Cockpit v5.4.38.
 
-## v2.5.4 — Présence v2
+## v2.5.6 — Présence v2
 Ajout d'une vue globale des utilisateurs actifs par module et contexte. Le module Admin publie lui-même son heartbeat dans `SESSIONS_UTILISATEURS`.
 
 
-## Sécurité applicative v2.5.4
+## Sécurité applicative v2.5.6
 
 Le module est désormais protégé dès son ouverture par `access.js`.
 
@@ -193,7 +193,7 @@ Le module est désormais protégé dès son ouverture par `access.js`.
 Cette garde ne remplace pas les ACL Grist : les ACL de tables restent la sécurité effective des données.
 
 
-## Administration graphique de DROITS_MODULES — v2.5.4
+## Administration graphique de DROITS_MODULES — v2.5.6
 
 Un écran **🔐 Accès modules** permet désormais à l'administrateur autorisé à ouvrir Audit PMO de gérer la matrice profils × modules.
 
@@ -206,3 +206,20 @@ Un écran **🔐 Accès modules** permet désormais à l'administrateur autoris�
 
 Important : pour permettre l'enregistrement depuis Audit PMO, les ACL de `DROITS_MODULES`
 doivent autoriser U/C au profil administrateur qui gère cette matrice. Les autres profils doivent rester en lecture seule.
+
+
+## v2.5.6 — Owner Grist + Administration RH
+
+- `access.js` passe en v1.1.0.
+- Détection Owner renforcée via l'endpoint Grist `/access`, avec fallback `/usersForViewAs`.
+- Un Owner du document bénéficie du bypass avant consultation de `DROITS_MODULES`.
+- Nouveau module administrable dans la matrice : `ADMIN_RH` — Administration RH.
+
+
+## v2.5.6
+Ajout du module `MIGRATION` à la matrice graphique des accès.
+
+
+## v2.5.7 — Page de blocage simplifiée
+`access.js` v1.2.0 n'expose plus le profil, le code module, la table de droits ni la raison technique du refus.
+L'utilisateur voit uniquement un message générique lui demandant de contacter l'administrateur de la solution.

@@ -1,4 +1,4 @@
-const VERSION="2.5.4";
+const VERSION="2.5.7";
 const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice",suggestions:"Suggestions",sessions:"SESSIONS_UTILISATEURS"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
@@ -272,7 +272,9 @@ $("refreshPresenceAdminBtn").onclick=renderPresenceAdmin;
 // ---- Accès modules / matrice profils x modules (v2.5.4) ----
 const MODULE_CATALOG=[
   {code:"AUDIT_PMO",label:"Administration & Audit PMO",icon:"🛡️"},
-  {code:"COCKPIT_RH",label:"Cockpit RH",icon:"👥"}
+  {code:"COCKPIT_RH",label:"Cockpit RH",icon:"👥"},
+  {code:"ADMIN_RH",label:"Administration RH",icon:"⚙️"},
+  {code:"MIGRATION",label:"Migration PMO",icon:"🔄"}
 ];
 let moduleRightsState={profiles:[],rows:[],dirty:false};
 
