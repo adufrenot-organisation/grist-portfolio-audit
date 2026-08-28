@@ -5,7 +5,41 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Admin & Audit PMO</title>
   <link rel="stylesheet" href="styles.css?v=2.5.2">
-  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  
+<section id="module-rights" class="tab-page" style="display:none">
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Sécurité applicative</div>
+      <h2>Accès aux modules</h2>
+      <p class="muted">Configurez les modules accessibles à chaque profil. Les Owners Grist du document conservent toujours l'accès.</p>
+    </div>
+    <div class="rights-actions">
+      <button id="rightsRefreshBtn" class="btn secondary">↻ Actualiser</button>
+      <button id="rightsSaveBtn" class="btn primary">💾 Enregistrer</button>
+    </div>
+  </div>
+
+  <div class="rights-banner">
+    <div class="rights-banner-icon">🛡️</div>
+    <div>
+      <strong>Cette matrice pilote l'entrée dans les widgets protégés.</strong>
+      <div>Une case cochée crée/active le droit dans <code>DROITS_MODULES</code>. Une case décochée le désactive. Les ACL Grist des tables restent la sécurité effective des données.</div>
+    </div>
+  </div>
+
+  <div id="rightsStatus" class="rights-status"></div>
+  <div id="rightsMatrix" class="rights-matrix-wrap">
+    <div class="rights-loading">Chargement des profils et des modules…</div>
+  </div>
+
+  <div class="rights-legend">
+    <span><b>✓</b> autorisé</span>
+    <span><b>—</b> non autorisé</span>
+    <span><b>👑</b> Owner Grist : accès automatique, hors matrice</span>
+  </div>
+</section>
+
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 </head>
 <body>
 <div id="app" class="admin-shell">
@@ -165,7 +199,7 @@
 </section>
 
 
-    <footer class="admin-footer">Admin & Audit PMO v2.5.2 • Grist reste l’unique source de vérité</footer>
+    <footer class="admin-footer">Admin & Audit PMO v2.5.4 • Grist reste l’unique source de vérité</footer>
   </main>
 
   <dialog id="editDialog"><form id="editForm" method="dialog"><input type="hidden" name="id"><div class="dialog-head"><h3 id="editTitle"></h3><button type="button" id="closeDialog">×</button></div><div id="editFields" class="form-grid"></div><div id="depHint" class="hint"></div><div class="dialog-actions"><button type="button" id="cancelDialog">Annuler</button><button class="primary">Enregistrer</button></div></form></dialog>
@@ -183,6 +217,7 @@
 </form></dialog>
 </div>
 <script src="presence.js?v=2.0"></script>
-<script src="app.js?v=2.5.2"></script>
+<script src="access.js?v=1.0.0"></script>
+<script src="app.js?v=2.5.4"></script>
 </body>
 </html>

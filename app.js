@@ -1,4 +1,4 @@
-const VERSION="2.5.2";
+const VERSION="2.5.4";
 const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice",suggestions:"Suggestions",sessions:"SESSIONS_UTILISATEURS"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
@@ -234,7 +234,17 @@ function previewMcd(fileInput,imageId,hintId,sharedName){
 }
 previewMcd($("mcdMetierFile"),"mcdMetierImage","mcdMetierHint","mcd-metier.png");
 previewMcd($("mcdAuditFile"),"mcdAuditImage","mcdAuditHint","mcd-audit.png");
-init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();setTab('home');window.PmoPresence?.start({widget:'ADMIN',version:VERSION,getContext:adminPresenceContext});
+grist.ready({requiredAccess:'full'});
+async function bootAdminAuditPMO(){
+  const allowed=await window.PmoAccess?.guard({module:'AUDIT_PMO',label:'Administration & Audit PMO'});
+  if(!allowed)return;
+  init();
+  initModuleRightsUI();
+  grist.onOptions(()=>load());
+  await load();
+  setTab('home');
+  window.PmoPresence?.start({widget:'AUDIT_PMO',version:VERSION,getContext:adminPresenceContext});
+}
 $("refreshTraceBtn").onclick=renderTrace;
 
 const purgeOldAuditBtn=document.getElementById("purgeOldAuditBtn");
@@ -257,3 +267,136 @@ $("suggestionAdminForm").onsubmit=saveSuggestionAdmin;
 
 $("presenceModuleFilter").onchange=renderPresenceAdmin;
 $("refreshPresenceAdminBtn").onclick=renderPresenceAdmin;
+
+
+// ---- Accès modules / matrice profils x modules (v2.5.4) ----
+const MODULE_CATALOG=[
+  {code:"AUDIT_PMO",label:"Administration & Audit PMO",icon:"🛡️"},
+  {code:"COCKPIT_RH",label:"Cockpit RH",icon:"👥"}
+];
+let moduleRightsState={profiles:[],rows:[],dirty:false};
+
+function _rowsFromTable(data){
+  if(!data||!Array.isArray(data.id))return[];
+  const keys=Object.keys(data);
+  return data.id.map((_,i)=>Object.fromEntries(keys.map(k=>[k,Array.isArray(data[k])?data[k][i]:data[k]])));
+}
+function _norm(v){return String(v??"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
+function _truth(v){return v===true||v===1||["true","1","oui","yes","on"].includes(_norm(v))}
+function _pick(row,names){for(const n of names){if(row&&row[n]!==undefined&&row[n]!==null)return row[n]}return null}
+
+async function loadModuleRights(){
+  const host=document.getElementById("rightsMatrix");
+  const status=document.getElementById("rightsStatus");
+  if(!host)return;
+  host.innerHTML='<div class="rights-loading">Chargement des profils et des modules…</div>';
+  if(status)status.textContent="";
+  try{
+    const tables=await grist.docApi.listTables();
+    if(!tables.includes("DROITS_MODULES")){
+      host.innerHTML='<div class="rights-empty"><div class="big">🔐</div><h3>Table DROITS_MODULES absente</h3><p>Importez la table de configuration fournie avec cette version puis revenez sur cette page.</p></div>';
+      return;
+    }
+    const teamTable=["Team","TEAM","Equipe"].find(t=>tables.includes(t));
+    if(!teamTable)throw new Error("Table Team introuvable.");
+
+    const [teamData,rightsData]=await Promise.all([
+      grist.docApi.fetchTable(teamTable),
+      grist.docApi.fetchTable("DROITS_MODULES")
+    ]);
+    const teamRows=_rowsFromTable(teamData);
+    const rightsRows=_rowsFromTable(rightsData);
+
+    const profileNames=["profil","Profil","profile","Profile","role","Role","ROLE"];
+    const profiles=[...new Set(teamRows.map(r=>String(_pick(r,profileNames)??"").trim()).filter(Boolean))]
+      .sort((a,b)=>a.localeCompare(b,"fr"));
+
+    moduleRightsState={profiles,rows:rightsRows,dirty:false};
+    renderModuleRights();
+  }catch(e){
+    host.innerHTML=`<div class="rights-empty"><div class="big">⚠️</div><h3>Impossible de charger les droits</h3><p>${esc(e.message||e)}</p></div>`;
+  }
+}
+
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+
+function rightRow(moduleCode,profile){
+  return moduleRightsState.rows.find(r=>
+    _norm(r.Module??r.Code_Module??r.module)===_norm(moduleCode) &&
+    _norm(r.Profil??r.Profile??r.Role??r.profil)===_norm(profile)
+  );
+}
+function rightAllowed(moduleCode,profile){
+  const r=rightRow(moduleCode,profile);
+  return !!r && _truth(r.Acces??r["Accès"]??r.Autorise??r["Autorisé"]) && (r.Actif===undefined||_truth(r.Actif));
+}
+function renderModuleRights(){
+  const host=document.getElementById("rightsMatrix");
+  if(!host)return;
+  const {profiles}=moduleRightsState;
+  if(!profiles.length){
+    host.innerHTML='<div class="rights-empty"><div class="big">👤</div><h3>Aucun profil détecté</h3><p>Renseignez un profil/rôle dans la table Team pour construire la matrice.</p></div>';
+    return;
+  }
+  let h='<table class="rights-table"><thead><tr><th class="module-col">Module</th>';
+  h+=profiles.map(p=>`<th><div class="profile-pill">${esc(p)}</div></th>`).join("");
+  h+='</tr></thead><tbody>';
+  for(const m of MODULE_CATALOG){
+    h+=`<tr><td class="module-cell"><span class="module-icon">${m.icon}</span><div><strong>${esc(m.label)}</strong><small>${esc(m.code)}</small></div></td>`;
+    for(const p of profiles){
+      const checked=rightAllowed(m.code,p);
+      h+=`<td class="right-cell"><label class="access-switch" title="${esc(p)} → ${esc(m.label)}">
+        <input type="checkbox" data-module="${esc(m.code)}" data-profile="${esc(p)}" ${checked?"checked":""}>
+        <span class="access-slider"><span class="access-check">✓</span><span class="access-dash">—</span></span>
+      </label></td>`;
+    }
+    h+='</tr>';
+  }
+  h+='</tbody></table>';
+  host.innerHTML=h;
+  host.querySelectorAll('input[type="checkbox"]').forEach(el=>el.addEventListener("change",()=>{
+    moduleRightsState.dirty=true;
+    const s=document.getElementById("rightsStatus");
+    if(s){s.className="rights-status pending";s.textContent="Modifications non enregistrées";}
+  }));
+}
+
+async function saveModuleRights(){
+  const status=document.getElementById("rightsStatus");
+  const host=document.getElementById("rightsMatrix");
+  if(!host)return;
+  const inputs=[...host.querySelectorAll('input[type="checkbox"][data-module][data-profile]')];
+  if(status){status.className="rights-status saving";status.textContent="Enregistrement…";}
+  try{
+    const updates=[];
+    const adds=[];
+    for(const input of inputs){
+      const module=input.dataset.module, profile=input.dataset.profile, allowed=input.checked;
+      const row=rightRow(module,profile);
+      if(row){
+        const current=rightAllowed(module,profile);
+        if(current!==allowed){
+          updates.push({id:row.id,fields:{Acces:allowed,Actif:true}});
+        }
+      }else if(allowed){
+        const meta=MODULE_CATALOG.find(m=>m.code===module);
+        adds.push({fields:{Module:module,Profil:profile,Acces:true,Actif:true,Description:`Accès ${meta?.label||module} pour le profil ${profile}`}});
+      }
+    }
+    if(updates.length)await grist.docApi.applyUserActions(updates.map(u=>["UpdateRecord","DROITS_MODULES",u.id,u.fields]));
+    if(adds.length)await grist.docApi.applyUserActions(adds.map(a=>["AddRecord","DROITS_MODULES",null,a.fields]));
+    moduleRightsState.dirty=false;
+    if(status){status.className="rights-status success";status.textContent="✓ Droits enregistrés dans DROITS_MODULES";}
+    await loadModuleRights();
+  }catch(e){
+    if(status){status.className="rights-status error";status.textContent=`Erreur : ${e.message||e}`}
+  }
+}
+
+function initModuleRightsUI(){
+  document.getElementById("rightsRefreshBtn")?.addEventListener("click",loadModuleRights);
+  document.getElementById("rightsSaveBtn")?.addEventListener("click",saveModuleRights);
+  document.querySelector('[data-tab="module-rights"]')?.addEventListener("click",()=>setTimeout(loadModuleRights,0));
+}
+
+bootAdminAuditPMO().catch(e=>window.PmoAccess?.guard({module:'AUDIT_PMO',label:'Administration & Audit PMO'}));

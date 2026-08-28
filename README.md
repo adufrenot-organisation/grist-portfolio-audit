@@ -176,5 +176,33 @@ Table attendue : `Parametres_FrontOffice` avec `Code`, `Libelle`, `Actif`, `Empl
 ## v2.5.1 — administration des suggestions
 Ajout d'un écran Suggestions : filtres, compteurs, traitement, statut, priorité, version cible, réponse PMO et responsable du traitement. Les réponses sont ensuite visibles par l'auteur dans le Cockpit v5.4.38.
 
-## v2.5.2 — Présence v2
+## v2.5.4 — Présence v2
 Ajout d'une vue globale des utilisateurs actifs par module et contexte. Le module Admin publie lui-même son heartbeat dans `SESSIONS_UTILISATEURS`.
+
+
+## Sécurité applicative v2.5.4
+
+Le module est désormais protégé dès son ouverture par `access.js`.
+
+- Le **Owner Grist du document** est autorisé automatiquement.
+- Pour tout autre utilisateur, l'adresse courante est rapprochée de `Team.email`.
+- Le profil est lu dans `Team.profil`, `Team.Profil`, `Team.role` ou `Team.Role`.
+- L'accès à ce widget exige une ligne active dans `DROITS_MODULES` avec `Module = AUDIT_PMO`.
+- En cas de refus, aucune donnée du module n'est chargée et une page verrouillée explique la cause.
+
+Cette garde ne remplace pas les ACL Grist : les ACL de tables restent la sécurité effective des données.
+
+
+## Administration graphique de DROITS_MODULES — v2.5.4
+
+Un écran **🔐 Accès modules** permet désormais à l'administrateur autorisé à ouvrir Audit PMO de gérer la matrice profils × modules.
+
+- Les profils sont découverts dynamiquement dans `Team`.
+- Les modules actuellement déclarés sont `AUDIT_PMO` et `COCKPIT_RH`.
+- Cocher une case crée ou active le droit.
+- Décocher une case désactive le droit (`Acces = false`, `Actif = true`).
+- Les Owners Grist ne figurent pas dans la matrice : leur accès reste automatique.
+- L'absence de droit autorisant vaut refus.
+
+Important : pour permettre l'enregistrement depuis Audit PMO, les ACL de `DROITS_MODULES`
+doivent autoriser U/C au profil administrateur qui gère cette matrice. Les autres profils doivent rester en lecture seule.
