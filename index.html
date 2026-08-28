@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Admin & Audit PMO</title>
-  <link rel="stylesheet" href="styles.css?v=2.5.1">
+  <link rel="stylesheet" href="styles.css?v=2.5.2">
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 </head>
 <body>
@@ -14,7 +14,7 @@
       <div class="admin-brand-badge">PMO</div>
       <div class="admin-brand-copy"><strong>Admin & Audit PMO</strong><small>Administration de la plateforme</small></div>
     </div>
-    <div class="admin-version">v2.5.1</div>
+    <div class="admin-version">v2.5.2</div>
 
     <nav class="admin-nav">
       <button class="admin-nav-item active" data-tab="home"><span>⌂</span><span>Accueil</span></button>
@@ -23,6 +23,7 @@
       <button class="admin-nav-item" data-tab="refs"><span>▤</span><span>Référentiels</span></button>
       <button class="admin-nav-item" data-tab="frontoffice"><span>▣</span><span>Front Office</span></button>
       <button class="admin-nav-item" data-tab="suggestions"><span>💡</span><span>Suggestions</span><em id="suggestionsNavBadge">0</em></button>
+      <button class="admin-nav-item" data-tab="presence"><span>●</span><span>Présence</span><em id="presenceNavBadge">0</em></button>
 
       <div class="admin-nav-group">Contenu & documentation</div>
       <button class="admin-nav-item" data-tab="docs"><span>▧</span><span>Documentation</span></button>
@@ -56,7 +57,7 @@
         <div class="welcome-copy">
           <h2>Bienvenue dans l’Admin & Audit PMO</h2>
           <p>Pilotez les référentiels, les paramètres du Cockpit, la documentation et la traçabilité Grist depuis un espace unique.</p>
-          <div class="welcome-badges"><span>● Environnement Grist</span><span>Version v2.5.1</span><span id="homeTableHealth">Chargement…</span></div>
+          <div class="welcome-badges"><span>● Environnement Grist</span><span>Version v2.5.2</span><span id="homeTableHealth">Chargement…</span></div>
         </div>
         <div class="welcome-visual"><span>▦</span><span>◈</span><span>✓</span></div>
       </div>
@@ -119,6 +120,12 @@
       <div class="panel"><div id="suggestionsAdminTable"></div></div>
     </section>
 
+<section id="presenceView" class="view hidden">
+      <div class="page-head"><div><h2>Présence applicative</h2><p>Utilisateurs actifs sur les différents modules PMO au cours des 10 dernières minutes.</p></div><div class="actions"><select id="presenceModuleFilter"><option value="">Tous les modules</option></select><button id="refreshPresenceAdminBtn">↻ Rafraîchir</button></div></div>
+      <div id="presenceAdminKpis" class="kpis"></div>
+      <div class="panel"><div id="presenceAdminTable"><p class="muted">Chargement…</p></div></div>
+    </section>
+
 <section id="docsView" class="view hidden">
       <div class="page-head"><div><h2>Documentation</h2><p>Liens et documents publiés dans le Cockpit PMO.</p></div><button class="primary" id="newDocBtn">+ Nouveau lien</button></div>
       <div class="panel"><div id="docsTable"></div><p class="muted">Les lignes actives apparaissent automatiquement dans l’onglet Documentation du Cockpit.</p></div>
@@ -158,7 +165,7 @@
 </section>
 
 
-    <footer class="admin-footer">Admin & Audit PMO v2.5.1 • Grist reste l’unique source de vérité</footer>
+    <footer class="admin-footer">Admin & Audit PMO v2.5.2 • Grist reste l’unique source de vérité</footer>
   </main>
 
   <dialog id="editDialog"><form id="editForm" method="dialog"><input type="hidden" name="id"><div class="dialog-head"><h3 id="editTitle"></h3><button type="button" id="closeDialog">×</button></div><div id="editFields" class="form-grid"></div><div id="depHint" class="hint"></div><div class="dialog-actions"><button type="button" id="cancelDialog">Annuler</button><button class="primary">Enregistrer</button></div></form></dialog>
@@ -175,6 +182,7 @@
   <div class="dialog-actions"><button type="button" id="cancelSuggestionAdmin">Annuler</button><button class="primary" type="submit">Enregistrer le suivi</button></div>
 </form></dialog>
 </div>
-<script src="app.js?v=2.5.1"></script>
+<script src="presence.js?v=2.0"></script>
+<script src="app.js?v=2.5.2"></script>
 </body>
 </html>

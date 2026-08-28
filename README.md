@@ -175,3 +175,6 @@ Table attendue : `Parametres_FrontOffice` avec `Code`, `Libelle`, `Actif`, `Empl
 
 ## v2.5.1 — administration des suggestions
 Ajout d'un écran Suggestions : filtres, compteurs, traitement, statut, priorité, version cible, réponse PMO et responsable du traitement. Les réponses sont ensuite visibles par l'auteur dans le Cockpit v5.4.38.
+
+## v2.5.2 — Présence v2
+Ajout d'une vue globale des utilisateurs actifs par module et contexte. Le module Admin publie lui-même son heartbeat dans `SESSIONS_UTILISATEURS`.

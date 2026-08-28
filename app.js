@@ -1,5 +1,5 @@
-const VERSION="2.5.1";
-const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice",suggestions:"Suggestions"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
+const VERSION="2.5.2";
+const T={domains:"Domaine",teamRef:"TEAM_REF",axes:"Axes_Strategiques",objectives:"Objectifs",offers:"Offres_Services",activityOffers:"Activites_OFS",activities:"Activites",team:"Team",projectStages:"Etapes_Projet",featureStages:"Stades_Fonctionnalite",features:"Fonctionnalites",projects:"Projects",tasks:"Tasks",allocations:"Allocations",contrib:"CONTRIBUTIONS_OBJECTIFS",audit:"JOURNAL_ACTIONS",documentation:"Documentation",frontOfficeConfig:"Parametres_FrontOffice",suggestions:"Suggestions",sessions:"SESSIONS_UTILISATEURS"};let db={},search="",resolvedTables={},tableErrors={};const $=x=>document.getElementById(x);function rows(d){if(!d||!Array.isArray(d.id))return[];let k=Object.keys(d);return d.id.map((_,i)=>Object.fromEntries(k.map(x=>[x,Array.isArray(d[x])?d[x][i]:d[x]])))}async function ft(k,t){
   const candidates={
     domains:["Domaine","Domaines","DOMAINE","DOMAINES"],
     teamRef:["TEAM_REF","Team_ref","TEAMREF"],
@@ -132,6 +132,33 @@ async function saveFrontOffice(e){
   await apply(actions,"Paramètres Front Office enregistrés.");
 }
 
+
+function adminPresenceContext(){
+  const labels={home:"Accueil",refs:"Référentiels",frontoffice:"Front Office",suggestions:"Suggestions",presence:"Présence",docs:"Documentation",audit:"Audit / Logs",trace:"Traçabilité Grist",diag:"Diagnostic",mcd:"MCD"};
+  return {module:"Admin",context:labels[currentAdminTab||"home"]||"Admin",contextId:""};
+}
+let currentAdminTab="home";
+function presenceAgo(v){
+  const ms=dms(v);if(!ms)return "—";const sec=Math.max(0,Math.round((Date.now()-ms)/1000));
+  if(sec<60)return `${sec}s`;if(sec<3600)return `${Math.floor(sec/60)} min`;return `${Math.floor(sec/3600)} h`;
+}
+async function renderPresenceAdmin(){
+  const host=$("presenceAdminTable");if(!host||!window.PmoPresence)return;
+  try{
+    const users=await window.PmoPresence.listActive({minutes:10,allModules:true});
+    const modules=[...new Set(users.map(u=>String(u.Module||u.Widget_Code||"Module")))].sort();
+    const filter=$("presenceModuleFilter");
+    const previous=filter.value;
+    filter.innerHTML='<option value="">Tous les modules</option>'+modules.map(m=>`<option>${esc(m)}</option>`).join("");
+    if(modules.includes(previous))filter.value=previous;
+    const shown=users.filter(u=>!filter.value||String(u.Module||u.Widget_Code||"")===filter.value);
+    $("presenceNavBadge").textContent=users.length;
+    const uniqueUsers=new Set(users.map(u=>String(u.Utilisateur_Email||u.Utilisateur_Nom||u.Session_ID||u.id).toLowerCase())).size;
+    $("presenceAdminKpis").innerHTML=`<div class="kpi"><span>Utilisateurs actifs</span><strong>${uniqueUsers}</strong></div><div class="kpi"><span>Présences module</span><strong>${users.length}</strong></div><div class="kpi"><span>Modules actifs</span><strong>${modules.length}</strong></div>`;
+    host.innerHTML=shown.length?`<table><thead><tr><th>Utilisateur</th><th>Module</th><th>Contexte</th><th>Version</th><th>Dernière activité</th><th>Sessions</th></tr></thead><tbody>${shown.map(u=>`<tr><td><strong>${esc(u.Utilisateur_Nom||u.Utilisateur_Email||"Utilisateur")}</strong><small class="presence-email">${esc(u.Utilisateur_Email||"")}</small></td><td><span class="presence-module">${esc(u.Module||u.Widget_Code||"Module")}</span></td><td>${esc(u.Contexte||u.Page||"—")}${u.Contexte_ID?` <small>#${esc(u.Contexte_ID)}</small>`:""}</td><td>${esc(u.Widget_Version||"—")}</td><td>${presenceAgo(u.Derniere_Activite)}</td><td>${u.sessions||1}</td></tr>`).join("")}</tbody></table>`:'<p class="muted">Aucune présence active pour ce filtre.</p>';
+  }catch(e){host.innerHTML=`<p class="muted">Présence inaccessible : ${esc(e?.message||e)}</p>`}
+}
+
 function suggestionAdminStatusClass(v){
   const x=String(v||"Nouvelle").toLowerCase();
   if(/réalis|real/.test(x))return "done";if(/refus/.test(x))return "refused";if(/accept|planifi/.test(x))return "accepted";if(/étude|etude/.test(x))return "study";return "new";
@@ -178,12 +205,12 @@ function renderHome(){
   const cfg=frontConfig();$("homeFrontOffice").innerHTML=["SUGGESTIONS","DISCUSSIONS","PRESENCE"].map(code=>{const r=cfg[code];return `<div class="config-line"><span>${esc(r.Libelle)}</span><strong class="${r.Actif!==false?'ok':'muted'}">${r.Actif!==false?`${esc(r.Emplacement||'HEADER')}`:'Masqué'}</strong></div>`}).join('');
   const recent=[...(db.audit||[])].sort((a,b)=>(dms(b.Date_Heure)||0)-(dms(a.Date_Heure)||0)).slice(0,5);$("homeRecentAudit").innerHTML=recent.length?`<div class="recent-table">${recent.map(r=>`<div class="recent-row"><span>${esc(dt(r.Date_Heure))}</span><strong>${esc(r.Utilisateur||'—')}</strong><span>${esc(r.Action||'—')}</span><span>${esc(r.Table||'—')}</span><em>${esc(r.Libelle||'')}</em></div>`).join('')}</div>`:'<p class="muted">Aucune activité enregistrée.</p>';
 }
-function setTab(tab){
+function setTab(tab){currentAdminTab=tab;window.PmoPresence?.touch?.();
   document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
-  ['home','refs','frontoffice','suggestions','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View')?.classList.toggle('hidden',k!==tab));
-  const titles={home:['Accueil','Administration et gouvernance de la plateforme PMO'],refs:['Référentiels','Administration des données de référence'],frontoffice:['Front Office','Configuration de l’expérience Cockpit'],suggestions:['Suggestions','Qualification et suivi des demandes utilisateurs'],docs:['Documentation','Contenus publiés dans le Cockpit'],audit:['Audit / Logs','Journal des actions applicatives'],trace:['Traçabilité Grist','Création et modification des données métier'],diag:['Diagnostic','Santé des tables et des sources'],mcd:['MCD','Documentation graphique des modèles']};
+  ['home','refs','frontoffice','suggestions','presence','docs','audit','trace','diag','mcd'].forEach(k=>$(k+'View')?.classList.toggle('hidden',k!==tab));
+  const titles={home:['Accueil','Administration et gouvernance de la plateforme PMO'],refs:['Référentiels','Administration des données de référence'],frontoffice:['Front Office','Configuration de l’expérience Cockpit'],suggestions:['Suggestions','Qualification et suivi des demandes utilisateurs'],presence:['Présence','Utilisateurs actifs sur les modules PMO'],docs:['Documentation','Contenus publiés dans le Cockpit'],audit:['Audit / Logs','Journal des actions applicatives'],trace:['Traçabilité Grist','Création et modification des données métier'],diag:['Diagnostic','Santé des tables et des sources'],mcd:['MCD','Documentation graphique des modèles']};
   if(titles[tab]){$('topbarTitle').textContent=titles[tab][0];$('topbarSubtitle').textContent=titles[tab][1]}
-  if(tab==='home')renderHome();if(tab==='refs')renderRefs();if(tab==='frontoffice')renderFrontOffice();if(tab==='suggestions')renderSuggestions();if(tab==='docs')renderDocs();if(tab==='audit')renderAudit();if(tab==='trace')renderTrace();if(tab==='diag')diag();
+  if(tab==='home')renderHome();if(tab==='refs')renderRefs();if(tab==='frontoffice')renderFrontOffice();if(tab==='suggestions')renderSuggestions();if(tab==='presence')renderPresenceAdmin();if(tab==='docs')renderDocs();if(tab==='audit')renderAudit();if(tab==='trace')renderTrace();if(tab==='diag')diag();
 }
 function diag(){
   diagnostic.textContent=Object.entries(T).map(([k,t])=>{
@@ -192,7 +219,7 @@ function diag(){
     if(source)return `${t.padEnd(28)} ${String(count).padStart(5)} ligne(s)   ✓ source: ${source}`;
     return `${t.padEnd(28)}     —          ✗ ${tableErrors[k]||"table introuvable"}`;
   }).join('\n')
-}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag();renderFrontOffice();renderSuggestions();renderHome()}
+}async function load(){db=Object.fromEntries(await Promise.all(Object.entries(T).map(async([k,t])=>[k,await ft(k,t)])));renderRefs();renderDocs();renderAudit();diag();renderFrontOffice();renderSuggestions();renderPresenceAdmin();renderHome()}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));document.querySelectorAll('[data-go-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.goTab));refSelect.onchange=renderRefs;newRefBtn.onclick=()=>openEdit();auditSearch.oninput=e=>{search=e.target.value.toLowerCase();renderAudit()};refreshAuditBtn.onclick=refreshDiagBtn.onclick=load;closeDialog.onclick=cancelDialog.onclick=()=>editDialog.close();document.querySelectorAll("[data-mcd]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("[data-mcd]").forEach(x=>x.classList.toggle("active",x===b));
   $("mcdMetierPanel").classList.toggle("hidden",b.dataset.mcd!=="metier");
@@ -207,7 +234,7 @@ function previewMcd(fileInput,imageId,hintId,sharedName){
 }
 previewMcd($("mcdMetierFile"),"mcdMetierImage","mcdMetierHint","mcd-metier.png");
 previewMcd($("mcdAuditFile"),"mcdAuditImage","mcdAuditHint","mcd-audit.png");
-init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();setTab('home');
+init();grist.ready({requiredAccess:'full'});grist.onOptions(()=>load());load();setTab('home');window.PmoPresence?.start({widget:'ADMIN',version:VERSION,getContext:adminPresenceContext});
 $("refreshTraceBtn").onclick=renderTrace;
 
 const purgeOldAuditBtn=document.getElementById("purgeOldAuditBtn");
@@ -227,3 +254,6 @@ $("suggestionStatusFilter").onchange=renderSuggestions;
 $("refreshSuggestionsBtn").onclick=load;
 $("closeSuggestionAdmin").onclick=$("cancelSuggestionAdmin").onclick=()=>$("suggestionAdminDialog").close();
 $("suggestionAdminForm").onsubmit=saveSuggestionAdmin;
+
+$("presenceModuleFilter").onchange=renderPresenceAdmin;
+$("refreshPresenceAdminBtn").onclick=renderPresenceAdmin;
